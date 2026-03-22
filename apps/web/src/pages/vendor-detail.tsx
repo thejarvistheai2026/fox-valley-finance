@@ -429,44 +429,58 @@ export function VendorDetailPage() {
       </Card>
 
       {/* Financial Summary Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {vendor.type === 'contract' && (
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Total Estimated</p>
-              <p className="text-2xl font-bold">
-                <Currency amount={vendor.estimated_total || 0} />
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Total Paid</p>
-            <p className="text-2xl font-bold">
-              <Currency amount={vendor.paid_total || 0} />
-            </p>
-          </CardContent>
-        </Card>
-        {vendor.type === 'contract' && (
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Outstanding</p>
-              <p className="text-2xl font-bold text-amber-600">
-                <Currency amount={vendor.outstanding || 0} />
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">HST Paid</p>
-            <p className="text-2xl font-bold">
-              <Currency amount={vendor.tax_total || 0} />
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {(() => {
+        // Calculate totals dynamically from estimates and receipts
+        const totalEstimated = vendor.type === 'contract'
+          ? estimates.reduce((sum, e) => sum + (e.estimated_total || 0), 0)
+          : 0;
+        const totalPaid = receipts.reduce((sum, r) => sum + (r.total || 0), 0);
+        const totalTax = receipts.reduce((sum, r) => sum + (r.tax_total || 0), 0);
+        const outstanding = vendor.type === 'contract'
+          ? totalEstimated - totalPaid
+          : 0;
+
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {vendor.type === 'contract' && (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">Total Estimated</p>
+                  <p className="text-2xl font-bold">
+                    <Currency amount={totalEstimated} />
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">Total Paid</p>
+                <p className="text-2xl font-bold">
+                  <Currency amount={totalPaid} />
+                </p>
+              </CardContent>
+            </Card>
+            {vendor.type === 'contract' && (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">Outstanding</p>
+                  <p className="text-2xl font-bold text-amber-600">
+                    <Currency amount={outstanding} />
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">HST Paid</p>
+                <p className="text-2xl font-bold">
+                  <Currency amount={totalTax} />
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* Vendor Type Specific Layout */}
       {vendor.type === 'contract' ? (
