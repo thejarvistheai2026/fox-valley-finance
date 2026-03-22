@@ -14,6 +14,8 @@ import {
   Plus,
   Edit,
   ExternalLink,
+  Trash2,
+  Link2Off,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -210,6 +212,60 @@ export function VendorDetailPage() {
     } catch (err) {
       console.error('Failed to fetch receipt document:', err);
       setReceiptDocument(null);
+    }
+  };
+
+  const handleDeleteEstimate = async (estimateId: string) => {
+    if (!vendor) return;
+    if (!confirm('Are you sure you want to delete this estimate? This will also unlink any associated receipts.')) return;
+
+    try {
+      const { deleteEstimate } = await import('@/lib/supabase');
+      await deleteEstimate(estimateId);
+      // Refresh estimates
+      const estimatesData = await getEstimates(vendor.id);
+      setEstimates(estimatesData);
+      // Refresh receipts (in case any were unlinked)
+      const receiptsData = await getReceipts({ vendorId: vendor.id });
+      setReceipts(receiptsData);
+    } catch (err) {
+      console.error('Failed to delete estimate:', err);
+      alert('Failed to delete estimate: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleDeleteReceipt = async (receiptId: string) => {
+    if (!vendor) return;
+    if (!confirm('Are you sure you want to delete this receipt?')) return;
+
+    try {
+      const { deleteReceipt } = await import('@/lib/supabase');
+      await deleteReceipt(receiptId);
+      // Refresh receipts
+      const receiptsData = await getReceipts({ vendorId: vendor.id });
+      setReceipts(receiptsData);
+      // Close dialog if open
+      setReceiptDialogOpen(false);
+      setSelectedReceipt(null);
+    } catch (err) {
+      console.error('Failed to delete receipt:', err);
+      alert('Failed to delete receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleUnlinkReceipt = async (receiptId: string) => {
+    if (!vendor) return;
+    if (!confirm('Unlink this receipt from the estimate? The receipt will still be available.')) return;
+
+    try {
+      const { unlinkReceiptFromEstimate } = await import('@/lib/supabase');
+      await unlinkReceiptFromEstimate(receiptId);
+      // Refresh receipts
+      const receiptsData = await getReceipts({ vendorId: vendor.id });
+      setReceipts(receiptsData);
+    } catch (err) {
+      console.error('Failed to unlink receipt:', err);
+      alert('Failed to unlink receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 
@@ -423,6 +479,9 @@ export function VendorDetailPage() {
           getLinkedReceipts={getLinkedReceipts}
           getUnlinkedReceipts={getUnlinkedReceipts}
           onViewReceipt={handleViewReceipt}
+          onDeleteEstimate={handleDeleteEstimate}
+          onDeleteReceipt={handleDeleteReceipt}
+          onUnlinkReceipt={handleUnlinkReceipt}
         />
       ) : (
         <RetailVendorLayout
@@ -431,6 +490,7 @@ export function VendorDetailPage() {
           documents={documents}
           onCreateReceipt={handleCreateReceipt}
           onViewReceipt={handleViewReceipt}
+          onDeleteReceipt={handleDeleteReceipt}
         />
       )}
 
@@ -631,6 +691,9 @@ interface ContractVendorLayoutProps {
   getLinkedReceipts: (estimateId: string) => Receipt[];
   getUnlinkedReceipts: () => Receipt[];
   onViewReceipt: (receipt: Receipt) => void;
+  onDeleteEstimate: (estimateId: string) => void;
+  onDeleteReceipt: (receiptId: string) => void;
+  onUnlinkReceipt: (receiptId: string) => void;
 }
 
 function ContractVendorLayout({
@@ -642,6 +705,9 @@ function ContractVendorLayout({
   getLinkedReceipts,
   getUnlinkedReceipts,
   onViewReceipt,
+  onDeleteEstimate,
+  onDeleteReceipt,
+  onUnlinkReceipt,
 }: ContractVendorLayoutProps) {
   const [expandedEstimate, setExpandedEstimate] = useState<string | null>(null);
   const unlinkedReceipts = getUnlinkedReceipts();
@@ -717,16 +783,30 @@ function ContractVendorLayout({
                             <Currency amount={estimate.outstanding || 0} />
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <Badge 
-                              variant={estimate.status === 'active' ? 'default' : 'secondary'}
-                              className={
-                                estimate.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-                                estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
-                                'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                              }
-                            >
-                              {estimate.status}
-                            </Badge>
+                            <div className="flex items-center justify-center gap-2">
+                              <Badge
+                                variant={estimate.status === 'active' ? 'default' : 'secondary'}
+                                className={
+                                  estimate.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
+                                  estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
+                                  'bg-gray-100 text-gray-800 hover:bg-gray-100'
+                                }
+                              >
+                                {estimate.status}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteEstimate(estimate.id);
+                                }}
+                                title="Delete estimate"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                         {isExpanded && (
@@ -765,6 +845,7 @@ function ContractVendorLayout({
                                         <th className="text-right py-2 px-2">Total</th>
                                         <th className="text-right py-2 px-2">HST</th>
                                         <th className="text-left py-2 px-2">Notes</th>
+                                        <th className="text-center py-2 px-2">Actions</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -795,8 +876,30 @@ function ContractVendorLayout({
                                           <td className="py-2 px-2 text-right">
                                             <Currency amount={receipt.tax_total} />
                                           </td>
-                                          <td className="py-2 px-2 text-muted-foreground truncate max-w-[200px]">
+                                          <td className="py-2 px-2 text-muted-foreground truncate max-w-[150px]">
                                             {receipt.notes}
+                                          </td>
+                                          <td className="py-2 px-2 text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 w-6 p-0"
+                                                onClick={() => onUnlinkReceipt(receipt.id)}
+                                                title="Unlink from estimate"
+                                              >
+                                                <Link2Off className="h-3 w-3" />
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                                onClick={() => onDeleteReceipt(receipt.id)}
+                                                title="Delete receipt"
+                                              >
+                                                <Trash2 className="h-3 w-3" />
+                                              </Button>
+                                            </div>
                                           </td>
                                         </tr>
                                       ))}
@@ -835,6 +938,7 @@ function ContractVendorLayout({
                     <th className="text-right py-2 px-4 font-medium">Total</th>
                     <th className="text-right py-2 px-4 font-medium">HST</th>
                     <th className="text-left py-2 px-4 font-medium">Notes</th>
+                    <th className="text-center py-2 px-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -866,6 +970,17 @@ function ContractVendorLayout({
                         <Currency amount={receipt.tax_total} />
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
+                      <td className="py-3 px-4 text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          onClick={() => onDeleteReceipt(receipt.id)}
+                          title="Delete receipt"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -885,6 +1000,7 @@ interface RetailVendorLayoutProps {
   documents: Document[];
   onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>, file?: File | null) => void;
   onViewReceipt: (receipt: Receipt) => void;
+  onDeleteReceipt: (receiptId: string) => void;
 }
 
 function RetailVendorLayout({
@@ -893,6 +1009,7 @@ function RetailVendorLayout({
   documents: _documents,
   onCreateReceipt,
   onViewReceipt,
+  onDeleteReceipt,
 }: RetailVendorLayoutProps) {
   const sortedReceipts = [...receipts].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -932,6 +1049,7 @@ function RetailVendorLayout({
                   <th className="text-right py-2 px-4 font-medium">HST</th>
                   <th className="text-left py-2 px-4 font-medium">Tags</th>
                   <th className="text-left py-2 px-4 font-medium">Notes</th>
+                  <th className="text-center py-2 px-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -965,6 +1083,17 @@ function RetailVendorLayout({
                       </div>
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
+                    <td className="py-3 px-4 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        onClick={() => onDeleteReceipt(receipt.id)}
+                        title="Delete receipt"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

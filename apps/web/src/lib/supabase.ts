@@ -129,9 +129,18 @@ export async function updateEstimate(id: string, updates: Partial<Estimate>) {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data as Estimate;
+}
+
+export async function deleteEstimate(id: string) {
+  const { error } = await supabase
+    .from('estimates')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 // Receipt queries
@@ -211,13 +220,31 @@ export async function updateReceipt(id: string, updates: Partial<Receipt>) {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data as Receipt;
 }
 
 export async function archiveReceipt(id: string) {
   return updateReceipt(id, { status: 'confirmed' as const });
+}
+
+export async function deleteReceipt(id: string) {
+  const { error } = await supabase
+    .from('receipts')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+export async function unlinkReceiptFromEstimate(receiptId: string) {
+  const { error } = await supabase
+    .from('receipts')
+    .update({ estimate_id: null })
+    .eq('id', receiptId);
+
+  if (error) throw error;
 }
 
 // Dashboard queries
