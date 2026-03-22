@@ -135,7 +135,7 @@ export function VendorDetailPage() {
     }
   };
 
-  const handleCreateReceipt = async (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>) => {
+  const handleCreateReceipt = async (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => {
     if (!vendor) return;
 
     console.log('Creating receipt with data:', data);
@@ -444,7 +444,7 @@ interface ContractVendorLayoutProps {
   estimates: Estimate[];
   documents: Document[];
   onCreateEstimate: (data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>) => void;
-  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>) => void;
+  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => void;
   getLinkedReceipts: (estimateId: string) => Receipt[];
   getUnlinkedReceipts: () => Receipt[];
 }
@@ -679,7 +679,7 @@ interface RetailVendorLayoutProps {
   vendor: Vendor;
   receipts: Receipt[];
   documents: Document[];
-  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>) => void;
+  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => void;
 }
 
 function RetailVendorLayout({

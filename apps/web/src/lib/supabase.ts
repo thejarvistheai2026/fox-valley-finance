@@ -180,14 +180,17 @@ export async function getReceiptById(id: string) {
   return data as Receipt;
 }
 
-export async function createReceipt(receipt: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at' | 'created_by'>) {
+export async function createReceipt(receipt: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at' | 'created_by' | 'tax_total'>) {
   // Get current user to set created_by
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Remove tax_total if present - it's a generated column
+  const { tax_total, ...receiptData } = receipt as any;
 
   const { data, error } = await supabase
     .from('receipts')
     .insert({
-      ...receipt,
+      ...receiptData,
       project_id: DEFAULT_PROJECT_ID,
       created_by: user?.id || null
     })
