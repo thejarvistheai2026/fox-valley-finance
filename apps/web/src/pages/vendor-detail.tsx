@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { VendorTypeBadge } from '@/components/badge';
 import { Currency } from '@/components/currency';
@@ -585,6 +585,36 @@ export function VendorDetailPage() {
               )}
             </div>
           )}
+          <DialogFooter className="flex gap-2">
+            {selectedReceipt && vendor && (
+              <ReceiptFormDialog
+                vendorId={vendor.id}
+                vendorType={vendor.type}
+                taxProvince={vendor.tax_province}
+                estimates={estimates}
+                receipt={selectedReceipt}
+                onSubmit={async (data, _file) => {
+                  // Close view dialog first
+                  setReceiptDialogOpen(false);
+                  // Update the receipt
+                  const { updateReceipt } = await import('@/lib/supabase');
+                  await updateReceipt(selectedReceipt.id, data);
+                  // Refresh receipts
+                  const receiptsData = await getReceipts({ vendorId: vendor.id });
+                  setReceipts(receiptsData);
+                }}
+                trigger={
+                  <Button variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Receipt
+                  </Button>
+                }
+              />
+            )}
+            <Button variant="outline" onClick={() => setReceiptDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
