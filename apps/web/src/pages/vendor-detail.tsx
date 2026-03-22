@@ -26,7 +26,7 @@ import { Currency } from '@/components/currency';
 import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -570,7 +570,7 @@ export function VendorDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(receiptDocument.storage_path, '_blank')}
+                      onClick={() => window.open(getDocumentPublicUrl(receiptDocument.storage_path), '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View

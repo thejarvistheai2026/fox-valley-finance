@@ -300,7 +300,13 @@ export async function uploadDocument(
   return { path: storagePath, url: publicUrl };
 }
 
-// Search
+// Get public URL for a document
+export function getDocumentPublicUrl(storagePath: string): string {
+  const { data: { publicUrl } } = supabase.storage
+    .from('documents')
+    .getPublicUrl(storagePath);
+  return publicUrl;
+}
 export async function searchAll(query: string) {
   const { data, error } = await supabase
     .rpc('search_all', { query_text: query });
