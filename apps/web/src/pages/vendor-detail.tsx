@@ -771,12 +771,14 @@ function ContractVendorLayout({
                                       {linkedReceipts.map((receipt) => (
                                         <tr key={receipt.id} className="border-b last:border-0">
                                           <td className="py-2 px-2">
-                                            <button
+                                            <Button
+                                              variant="link"
+                                              size="sm"
+                                              className="h-auto p-0 font-medium"
                                               onClick={() => onViewReceipt(receipt)}
-                                              className="font-medium text-primary hover:underline cursor-pointer"
                                             >
                                               {receipt.display_id}
-                                            </button>
+                                            </Button>
                                           </td>
                                           <td className="py-2 px-2 text-muted-foreground">{receipt.vendor_ref}</td>
                                           <td className="py-2 px-2">{receipt.date}</td>
@@ -839,12 +841,14 @@ function ContractVendorLayout({
                   {unlinkedReceipts.map((receipt) => (
                     <tr key={receipt.id} className="border-t hover:bg-muted/50">
                       <td className="py-3 px-4">
-                        <button
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 font-medium"
                           onClick={() => onViewReceipt(receipt)}
-                          className="font-medium text-primary hover:underline cursor-pointer"
                         >
                           {receipt.display_id}
-                        </button>
+                        </Button>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                       <td className="py-3 px-4">{receipt.date}</td>
@@ -934,12 +938,14 @@ function RetailVendorLayout({
                 {sortedReceipts.map((receipt) => (
                   <tr key={receipt.id} className="border-t hover:bg-muted/50">
                     <td className="py-3 px-4">
-                      <button
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 font-medium"
                         onClick={() => onViewReceipt(receipt)}
-                        className="font-medium text-primary hover:underline cursor-pointer"
                       >
                         {receipt.display_id}
-                      </button>
+                      </Button>
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                     <td className="py-3 px-4">{receipt.date}</td>
