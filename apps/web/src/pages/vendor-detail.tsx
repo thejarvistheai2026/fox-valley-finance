@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { VendorTypeBadge } from '@/components/badge';
 import { Currency } from '@/components/currency';
 import { VendorFormDialog } from '@/components/vendor-form';
@@ -36,6 +38,9 @@ export function VendorDetailPage() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
+  const [receiptDocument, setReceiptDocument] = useState<Document | null>(null);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
 
   useEffect(() => {
     async function fetchVendorData() {
@@ -135,7 +140,10 @@ export function VendorDetailPage() {
     }
   };
 
-  const handleCreateReceipt = async (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => {
+  const handleCreateReceipt = async (
+    data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>,
+    file?: File | null
+  ) => {
     if (!vendor) return;
 
     console.log('Creating receipt with data:', data);
@@ -148,7 +156,38 @@ export function VendorDetailPage() {
         status: 'confirmed' as const,
       };
       console.log('Sending to createReceipt:', receiptData);
-      await createReceipt(receiptData);
+      const newReceipt = await createReceipt(receiptData);
+
+      // If there's a file, upload it and create a document
+      if (file) {
+        console.log('Uploading file:', file.name);
+        const { path } = await uploadDocument(
+          file,
+          vendor.project_id,
+          'receipts',
+          newReceipt.id
+        );
+
+        console.log('File uploaded to:', path);
+
+        await createDocument({
+          project_id: vendor.project_id,
+          vendor_id: vendor.id,
+          receipt_id: newReceipt.id,
+          display_name: file.name,
+          original_file_name: file.name,
+          storage_path: path,
+          file_type: file.type,
+          file_size_bytes: file.size,
+          tags: [],
+        });
+
+        console.log('Document record created');
+
+        // Refresh documents
+        const docsData = await getDocuments(vendor.id);
+        setDocuments(docsData);
+      }
 
       // Refresh receipts list
       const receiptsData = await getReceipts({ vendorId: vendor.id });
@@ -156,6 +195,21 @@ export function VendorDetailPage() {
     } catch (err) {
       console.error('Failed to create receipt:', err);
       alert('Failed to create receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleViewReceipt = async (receipt: Receipt) => {
+    setSelectedReceipt(receipt);
+    setReceiptDialogOpen(true);
+
+    // Try to find associated document
+    try {
+      const docs = await getDocuments(vendor!.id);
+      const receiptDoc = docs.find(d => d.receipt_id === receipt.id);
+      setReceiptDocument(receiptDoc || null);
+    } catch (err) {
+      console.error('Failed to fetch receipt document:', err);
+      setReceiptDocument(null);
     }
   };
 
@@ -368,6 +422,7 @@ export function VendorDetailPage() {
           onCreateReceipt={handleCreateReceipt}
           getLinkedReceipts={getLinkedReceipts}
           getUnlinkedReceipts={getUnlinkedReceipts}
+          onViewReceipt={handleViewReceipt}
         />
       ) : (
         <RetailVendorLayout
@@ -375,6 +430,7 @@ export function VendorDetailPage() {
           receipts={receipts}
           documents={documents}
           onCreateReceipt={handleCreateReceipt}
+          onViewReceipt={handleViewReceipt}
         />
       )}
 
@@ -434,6 +490,103 @@ export function VendorDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Receipt Detail Dialog */}
+      <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedReceipt?.display_id}</DialogTitle>
+            <DialogDescription>
+              Receipt details and attached document
+            </DialogDescription>
+          </DialogHeader>
+          {selectedReceipt && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Vendor Reference</Label>
+                  <p className="font-medium">{selectedReceipt.vendor_ref || 'N/A'}</p>
+                </div>
+                <div>
+                  <Label>Date</Label>
+                  <p className="font-medium">{selectedReceipt.date}</p>
+                </div>
+                <div>
+                  <Label>Subtotal</Label>
+                  <p className="font-medium"><Currency amount={selectedReceipt.subtotal} /></p>
+                </div>
+                <div>
+                  <Label>GST/HST</Label>
+                  <p className="font-medium"><Currency amount={selectedReceipt.gst_amount} /></p>
+                </div>
+                <div>
+                  <Label>PST/QST</Label>
+                  <p className="font-medium"><Currency amount={selectedReceipt.pst_amount} /></p>
+                </div>
+                <div>
+                  <Label>Total</Label>
+                  <p className="font-medium text-lg"><Currency amount={selectedReceipt.total} /></p>
+                </div>
+                {selectedReceipt.payment_type && (
+                  <div>
+                    <Label>Payment Type</Label>
+                    <Badge variant="outline" className="capitalize mt-1">
+                      {selectedReceipt.payment_type}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              {selectedReceipt.notes && (
+                <div>
+                  <Label>Notes</Label>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedReceipt.notes}</p>
+                </div>
+              )}
+              {selectedReceipt.tags?.length > 0 && (
+                <div>
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedReceipt.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {receiptDocument ? (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <Label>Attached Document</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    {receiptDocument.file_type.includes('pdf') ? (
+                      <FileText className="h-8 w-8 text-red-500" />
+                    ) : (
+                      <ReceiptIcon className="h-8 w-8 text-blue-500" />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium">{receiptDocument.display_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(receiptDocument.file_size_bytes)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(receiptDocument.storage_path, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border rounded-lg p-4 bg-muted/30 text-center">
+                  <ReceiptIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">No document attached</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -444,18 +597,21 @@ interface ContractVendorLayoutProps {
   estimates: Estimate[];
   documents: Document[];
   onCreateEstimate: (data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>) => void;
-  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => void;
+  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>, file?: File | null) => void;
   getLinkedReceipts: (estimateId: string) => Receipt[];
   getUnlinkedReceipts: () => Receipt[];
+  onViewReceipt: (receipt: Receipt) => void;
 }
 
 function ContractVendorLayout({
   vendor,
   estimates,
+  documents: _documents,
   onCreateEstimate,
   onCreateReceipt,
   getLinkedReceipts,
   getUnlinkedReceipts,
+  onViewReceipt,
 }: ContractVendorLayoutProps) {
   const [expandedEstimate, setExpandedEstimate] = useState<string | null>(null);
   const unlinkedReceipts = getUnlinkedReceipts();
@@ -584,7 +740,14 @@ function ContractVendorLayout({
                                     <tbody>
                                       {linkedReceipts.map((receipt) => (
                                         <tr key={receipt.id} className="border-b last:border-0">
-                                          <td className="py-2 px-2">{receipt.display_id}</td>
+                                          <td className="py-2 px-2">
+                                            <button
+                                              onClick={() => onViewReceipt(receipt)}
+                                              className="font-medium text-primary hover:underline cursor-pointer"
+                                            >
+                                              {receipt.display_id}
+                                            </button>
+                                          </td>
                                           <td className="py-2 px-2 text-muted-foreground">{receipt.vendor_ref}</td>
                                           <td className="py-2 px-2">{receipt.date}</td>
                                           <td className="py-2 px-2">
@@ -645,7 +808,14 @@ function ContractVendorLayout({
                 <tbody>
                   {unlinkedReceipts.map((receipt) => (
                     <tr key={receipt.id} className="border-t hover:bg-muted/50">
-                      <td className="py-3 px-4">{receipt.display_id}</td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => onViewReceipt(receipt)}
+                          className="font-medium text-primary hover:underline cursor-pointer"
+                        >
+                          {receipt.display_id}
+                        </button>
+                      </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                       <td className="py-3 px-4">{receipt.date}</td>
                       <td className="py-3 px-4">
@@ -679,13 +849,16 @@ interface RetailVendorLayoutProps {
   vendor: Vendor;
   receipts: Receipt[];
   documents: Document[];
-  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>) => void;
+  onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>, file?: File | null) => void;
+  onViewReceipt: (receipt: Receipt) => void;
 }
 
 function RetailVendorLayout({
   vendor,
   receipts,
+  documents: _documents,
   onCreateReceipt,
+  onViewReceipt,
 }: RetailVendorLayoutProps) {
   const sortedReceipts = [...receipts].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -730,7 +903,14 @@ function RetailVendorLayout({
               <tbody>
                 {sortedReceipts.map((receipt) => (
                   <tr key={receipt.id} className="border-t hover:bg-muted/50">
-                    <td className="py-3 px-4">{receipt.display_id}</td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onViewReceipt(receipt)}
+                        className="font-medium text-primary hover:underline cursor-pointer"
+                      >
+                        {receipt.display_id}
+                      </button>
+                    </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                     <td className="py-3 px-4">{receipt.date}</td>
                     <td className="py-3 px-4 text-right">
