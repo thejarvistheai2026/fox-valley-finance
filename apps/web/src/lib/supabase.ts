@@ -180,14 +180,24 @@ export async function getReceiptById(id: string) {
   return data as Receipt;
 }
 
-export async function createReceipt(receipt: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) {
+export async function createReceipt(receipt: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at' | 'created_by'>) {
+  // Get current user to set created_by
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from('receipts')
-    .insert({ ...receipt, project_id: DEFAULT_PROJECT_ID })
+    .insert({
+      ...receipt,
+      project_id: DEFAULT_PROJECT_ID,
+      created_by: user?.id || null
+    })
     .select()
     .single();
-  
-  if (error) throw error;
+
+  if (error) {
+    console.error('Supabase error creating receipt:', error);
+    throw new Error(`Database error: ${error.message} (${error.code})`);
+  }
   return data as Receipt;
 }
 
