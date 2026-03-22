@@ -155,6 +155,7 @@ export function VendorDetailPage() {
       setReceipts(receiptsData);
     } catch (err) {
       console.error('Failed to create receipt:', err);
+      alert('Failed to create receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 

@@ -32,7 +32,7 @@ import type { Receipt as ReceiptType, Estimate, TaxProvince } from '@/types';
 import { PAYMENT_TYPES } from '@/types';
 
 const receiptSchema = z.object({
-  vendor_ref: z.string().optional(),
+  vendor_ref: z.string().min(1, 'Vendor reference is required'),
   date: z.date(),
   subtotal: z.number().min(0, 'Amount must be positive'),
   gst_amount: z.number().min(0),
@@ -168,12 +168,15 @@ export function ReceiptFormDialog({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="vendor_ref">Vendor Reference/Invoice #</Label>
+              <Label htmlFor="vendor_ref">Vendor Reference/Invoice # *</Label>
               <Input
                 id="vendor_ref"
                 {...form.register('vendor_ref')}
                 placeholder="e.g., INV-2026-001"
               />
+              {form.formState.errors.vendor_ref && (
+                <p className="text-sm text-destructive mt-1">{form.formState.errors.vendor_ref.message}</p>
+              )}
             </div>
             
             <div>
