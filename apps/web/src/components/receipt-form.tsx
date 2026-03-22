@@ -110,13 +110,17 @@ export function ReceiptFormDialog({
   }, [subtotal, gstAmount, pstAmount, form]);
   
   const handleSubmit = (data: ReceiptFormData) => {
-    onSubmit({
+    console.log('Receipt form submitting:', data);
+    console.log('estimate_id from form:', data.estimate_id);
+    const submitData = {
       ...data,
       vendor_id: vendorId,
       estimate_id: data.estimate_id || undefined,
       date: format(data.date, 'yyyy-MM-dd'),
       tax_total: (data.gst_amount || 0) + (data.pst_amount || 0),
-    } as Omit<ReceiptType, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>);
+    };
+    console.log('Submitting to parent:', submitData);
+    onSubmit(submitData as Omit<ReceiptType, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>);
     setOpen(false);
     form.reset();
     setSelectedFile(null);

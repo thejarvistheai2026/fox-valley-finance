@@ -138,12 +138,17 @@ export function VendorDetailPage() {
   const handleCreateReceipt = async (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by'>) => {
     if (!vendor) return;
 
+    console.log('Creating receipt with data:', data);
+    console.log('estimate_id:', data.estimate_id);
+
     try {
-      await createReceipt({
+      const receiptData = {
         ...data,
         vendor_id: vendor.id,
-        status: 'confirmed',
-      });
+        status: 'confirmed' as const,
+      };
+      console.log('Sending to createReceipt:', receiptData);
+      await createReceipt(receiptData);
 
       // Refresh receipts list
       const receiptsData = await getReceipts({ vendorId: vendor.id });

@@ -33,6 +33,13 @@ Personal finance tracking app for residential home construction. Tracks estimate
 7. **Receipts not persisting** - Was using local state instead of database
    - Fixed in: `apps/web/src/pages/vendor-detail.tsx`
 
+### Deployment
+- Successfully deployed to Vercel: https://fox-valley-finance.vercel.app
+- GitHub repo: https://github.com/thejarvistheai2026/fox-valley-finance
+- Fixed TypeScript build errors
+- Fixed git submodule issue with `apps/web`
+- Added SPA routing configuration
+
 ### Features Added
 1. **Document upload for estimates** - Can attach PDF/image when creating estimate
    - New file: `apps/web/src/components/document-upload.tsx`
@@ -63,6 +70,36 @@ Added `project_id` to TypeScript interfaces:
 - Supabase Storage bucket "documents" needs to be created manually if not exists
 - Documents section "Upload Document" button not wired up (only works via estimate form)
 - Mobile app not tested in this session
+
+## Deployment (2026-03-22)
+
+### Vercel Production Deployment
+Successfully deployed to Vercel:
+- **Live URL**: https://fox-valley-finance.vercel.app
+- **GitHub Repo**: https://github.com/thejarvistheai2026/fox-valley-finance
+- **Vercel Dashboard**: https://vercel.com/thejarvistheai2026s-projects/fox-valley-finance
+
+### Deployment Fixes Required
+1. **TypeScript build errors** - Fixed type signatures for create functions
+   - Updated `createVendor`, `createEstimate`, `createReceipt` to auto-add `project_id`
+   - Updated form components to exclude `project_id` from type signatures
+   - Removed unused mock variables from `vendor-detail.tsx`
+
+2. **Git submodule issue** - `apps/web` was registered as git submodule
+   - Fixed by removing submodule entry: `git rm --cached apps/web`
+   - Re-added as regular directory with all source files
+
+3. **SPA routing** - Added `vercel.json` for catch-all routing
+   - Created root-level `vercel.json` with framework settings
+   - Created `apps/web/vercel.json` with rewrite rules
+
+4. **Environment variables** - Added to Vercel project
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+### Auto-Deployment
+- GitHub integration connected
+- Every push to `main` branch auto-deploys to production
 
 ## Next Steps (if needed)
 1. Create Supabase Storage bucket for documents
