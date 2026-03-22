@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Fox Valley Finance",
+    "slug": "fox-valley-finance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0ea5e9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.foxvalley.finance",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture receipt images for expense tracking.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photos to select receipt images."
+      }
+    },
+    "android": {
+      "package": "com.foxvalley.finance",
+      "adaptiveIcon": {
+        "backgroundColor": "#0ea5e9",
+        "foregroundImage": "./assets/icon.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Fox Valley Finance to access your camera to capture receipts."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Fox Valley Finance to access your photos to select receipts."
+        }
+      ]
+    ]
+  }
+}
