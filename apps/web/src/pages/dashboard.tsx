@@ -324,15 +324,22 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
   return (
     <Card className={cn("border shadow-sm hover:shadow-md transition-shadow", variantStyles[variant])}>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <div className={cn("p-2.5 rounded-xl", iconStyles[variant])}>
-          <Icon className="h-5 w-5" />
+        <div className="flex items-center gap-3">
+          <div className={cn("p-2.5 rounded-xl", iconStyles[variant])}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">{title}</span>
         </div>
         {trend && (
           <div className={cn(
             "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
             trendUp ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
           )}>
-            <{trendUp ? TrendingUp : TrendingDown} className="h-3 w-3" />
+            {trendUp ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
             {trend}
           </div>
         )}

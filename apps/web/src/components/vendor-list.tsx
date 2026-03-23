@@ -33,9 +33,9 @@ interface VendorListProps {
 export function VendorList({ vendors, onArchive, onUpdate }: VendorListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredVendors = vendors.filter((vendor) =
+  const filteredVendors = vendors.filter((vendor) =>
     vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    vendor.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    vendor.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const activeVendors = filteredVendors.filter((v) => !v.is_archived);
