@@ -182,16 +182,17 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
                 </Link>
               </DropdownMenuItem>
               {onUpdate && (
-                <VendorFormDialog
-                  vendor={vendor}
-                  onSubmit={(data) => onUpdate(vendor, data)}
-                  trigger={
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                  }
-                />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    // Open edit dialog via a custom event or use a separate button
+                    const event = new CustomEvent('edit-vendor', { detail: vendor });
+                    document.dispatchEvent(event);
+                  }}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
               )}
               {!vendor.is_archived && onArchive && (
                 <DropdownMenuItem onClick={() => onArchive(vendor)}>
