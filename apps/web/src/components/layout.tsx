@@ -1,17 +1,20 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Inbox, 
-  Search, 
+import {
+  LayoutDashboard,
+  Building2,
+  Inbox,
+  Search,
   Menu,
-  Receipt
+  Receipt,
+  LogOut,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { getReceipts } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,7 +82,8 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
 export function Layout() {
   const [inboxCount, setInboxCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  
+  const { user, signOut } = useAuth();
+
   // Fetch inbox count
   useEffect(() => {
     async function fetchInboxCount() {
@@ -94,14 +98,22 @@ export function Layout() {
 
     fetchInboxCount();
   }, []);
-  
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-background">
         <SidebarContent inboxCount={inboxCount} />
       </aside>
-      
+
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger className="md:hidden">
@@ -117,18 +129,25 @@ export function Layout() {
           <SidebarContent inboxCount={inboxCount} />
         </SheetContent>
       </Sheet>
-      
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         <header className="border-b px-6 py-4 flex items-center justify-between md:justify-end">
           <h1 className="md:hidden text-lg font-semibold">Fox Valley</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Welcome back
-            </span>
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                {user?.email}
+              </span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-1" />
+              Logout
+            </Button>
           </div>
         </header>
-        
+
         <div className="flex-1 p-6 overflow-auto">
           <Outlet />
         </div>
