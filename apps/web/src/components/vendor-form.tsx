@@ -205,10 +205,9 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
               <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
-                {...form.register('tags')}
                 onChange={(e) => {
                   const tags = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
-                  form.setValue('tags', tags);
+                  form.setValue('tags', tags, { shouldValidate: true });
                 }}
                 value={form.watch('tags')?.join(', ') || ''}
                 placeholder="e.g., plumbing, kitchen, materials (comma separated)"

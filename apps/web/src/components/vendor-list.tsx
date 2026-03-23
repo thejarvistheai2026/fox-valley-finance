@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { VendorTypeBadge } from '@/components/badge';
 import { Currency } from '@/components/currency';
-import { VendorFormDialog } from '@/components/vendor-form';
 import type { Vendor } from '@/types';
 
 interface VendorListProps {
