@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { getReceipts } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -25,38 +26,46 @@ const navItems = [
 
 function SidebarContent({ inboxCount }: { inboxCount: number }) {
   const location = useLocation();
-  
+
   return (
     <div className="flex flex-col h-full">
       <div className="p-6">
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+          <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-2.5 rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
             <Receipt className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-lg">Fox Valley</span>
+          <div>
+            <span className="font-semibold text-lg tracking-tight">Fox Valley</span>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Finance</p>
+          </div>
         </Link>
       </div>
-      
-      <Separator />
-      
+
+      <div className="px-4">
+        <Separator />
+      </div>
+
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || 
+            const isActive = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path));
             const Icon = item.icon;
-            
+
             return (
               <li key={item.path}>
                 <Link to={item.path}>
                   <Button
                     variant={isActive ? 'secondary' : 'ghost'}
-                    className="w-full justify-start gap-3"
+                    className={cn(
+                      "w-full justify-start gap-3 h-11",
+                      isActive && "bg-primary/10 text-primary hover:bg-primary/15"
+                    )}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <Icon className={cn("h-4 w-4", isActive && "text-primary")} />
+                    <span className="font-medium">{item.label}</span>
                     {item.path === '/inbox' && inboxCount > 0 && (
-                      <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full">
+                      <span className="ml-auto bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-1 rounded-full">
                         {inboxCount}
                       </span>
                     )}
@@ -67,13 +76,16 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
           })}
         </ul>
       </nav>
-      
-      <Separator />
-      
-      <div className="p-4">
-        <p className="text-xs text-muted-foreground">
-          Fox Valley Finance Tracker
-        </p>
+
+      <div className="mt-auto p-4">
+        <div className="bg-muted/50 rounded-xl p-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Fox Valley Finance Tracker
+          </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            v1.0
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -108,9 +120,9 @@ export function Layout() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r bg-background">
+      <aside className="hidden md:flex w-64 flex-col border-r bg-card/50 backdrop-blur-sm">
         <SidebarContent inboxCount={inboxCount} />
       </aside>
 
@@ -132,23 +144,25 @@ export function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="border-b px-6 py-4 flex items-center justify-between md:justify-end">
+        <header className="border-b bg-card/50 backdrop-blur-sm px-8 py-4 flex items-center justify-between md:justify-end sticky top-0 z-40">
           <h1 className="md:hidden text-lg font-semibold">Fox Valley</h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-full">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground truncate max-w-[180px]">
                 {user?.email}
               </span>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-1" />
-              Logout
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
             </Button>
           </div>
         </header>
 
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-8 overflow-auto">
           <Outlet />
         </div>
       </main>
