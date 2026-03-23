@@ -28,7 +28,7 @@ import { Currency } from '@/components/currency';
 import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -76,9 +76,14 @@ export function VendorDetailPage() {
     fetchVendorData();
   }, [id]);
 
-  const handleUpdateVendor = (data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => {
-    if (vendor) {
-      setVendor({ ...vendor, ...data });
+  const handleUpdateVendor = async (data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => {
+    if (!vendor) return;
+    try {
+      const updatedVendor = await updateVendor(vendor.id, data);
+      setVendor(updatedVendor);
+    } catch (err) {
+      console.error('Failed to update vendor:', err);
+      alert('Failed to update vendor: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { VendorList } from '@/components/vendor-list';
 import { VendorFormDialog } from '@/components/vendor-form';
 import type { Vendor } from '@/types';
-import { getVendors, createVendor, archiveVendor } from '@/lib/supabase';
+import { getVendors, createVendor, archiveVendor, updateVendor } from '@/lib/supabase';
 
 export function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -42,12 +42,22 @@ export function VendorsPage() {
   const handleArchiveVendor = async (vendor: Vendor) => {
     try {
       await archiveVendor(vendor.id);
-      setVendors(vendors.map((v) => 
+      setVendors(vendors.map((v) =>
         v.id === vendor.id ? { ...v, is_archived: true } : v
       ));
     } catch (err) {
       console.error('Failed to archive vendor:', err);
       setError(err instanceof Error ? err.message : 'Failed to archive vendor');
+    }
+  };
+
+  const handleUpdateVendor = async (vendor: Vendor, data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const updatedVendor = await updateVendor(vendor.id, data);
+      setVendors(vendors.map((v) => v.id === vendor.id ? updatedVendor : v));
+    } catch (err) {
+      console.error('Failed to update vendor:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update vendor');
     }
   };
   
@@ -85,9 +95,10 @@ export function VendorsPage() {
           ))}
         </div>
       ) : (
-        <VendorList 
-          vendors={vendors} 
+        <VendorList
+          vendors={vendors}
           onArchive={handleArchiveVendor}
+          onUpdate={handleUpdateVendor}
         />
       )}
     </div>

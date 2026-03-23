@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Building2, 
-  Search, 
-  MoreHorizontal, 
-  Phone, 
-  Mail, 
+import {
+  Building2,
+  Search,
+  MoreHorizontal,
+  Phone,
+  Mail,
   MapPin,
-  Archive
+  Archive,
+  Edit
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,14 +21,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { VendorTypeBadge } from '@/components/badge';
 import { Currency } from '@/components/currency';
+import { VendorFormDialog } from '@/components/vendor-form';
 import type { Vendor } from '@/types';
 
 interface VendorListProps {
   vendors: Vendor[];
   onArchive?: (vendor: Vendor) => void;
+  onUpdate?: (vendor: Vendor, data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => void;
 }
 
-export function VendorList({ vendors, onArchive }: VendorListProps) {
+export function VendorList({ vendors, onArchive, onUpdate }: VendorListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   
   const filteredVendors = vendors.filter((vendor) =>
@@ -67,7 +70,7 @@ export function VendorList({ vendors, onArchive }: VendorListProps) {
         )}
         
         {activeVendors.map((vendor) => (
-          <VendorCard key={vendor.id} vendor={vendor} onArchive={onArchive} />
+          <VendorCard key={vendor.id} vendor={vendor} onArchive={onArchive} onUpdate={onUpdate} />
         ))}
         
         {archivedVendors.length > 0 && (
@@ -76,7 +79,7 @@ export function VendorList({ vendors, onArchive }: VendorListProps) {
               Archived Vendors
             </h3>
             {archivedVendors.map((vendor) => (
-              <VendorCard key={vendor.id} vendor={vendor} onArchive={onArchive} />
+              <VendorCard key={vendor.id} vendor={vendor} onArchive={onArchive} onUpdate={onUpdate} />
             ))}
           </>
         )}
@@ -85,7 +88,7 @@ export function VendorList({ vendors, onArchive }: VendorListProps) {
   );
 }
 
-function VendorCard({ vendor, onArchive }: { vendor: Vendor; onArchive?: (vendor: Vendor) => void }) {
+function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive?: (vendor: Vendor) => void; onUpdate?: (vendor: Vendor, data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => void }) {
   return (
     <div className="group border rounded-lg p-4 hover:border-primary/50 hover:shadow-sm transition-all">
       <div className="flex items-start justify-between">
@@ -178,6 +181,18 @@ function VendorCard({ vendor, onArchive }: { vendor: Vendor; onArchive?: (vendor
                   View Details
                 </Link>
               </DropdownMenuItem>
+              {onUpdate && (
+                <VendorFormDialog
+                  vendor={vendor}
+                  onSubmit={(data) => onUpdate(vendor, data)}
+                  trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                  }
+                />
+              )}
               {!vendor.is_archived && onArchive && (
                 <DropdownMenuItem onClick={() => onArchive(vendor)}>
                   <Archive className="h-4 w-4 mr-2" />
