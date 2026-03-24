@@ -34,10 +34,7 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
           <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-2.5 rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
             <Home className="h-5 w-5" />
           </div>
-          <div>
-            <span className="font-semibold text-lg tracking-tight">Fox Valley</span>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Finance</p>
-          </div>
+          <span className="font-semibold text-lg tracking-tight">Fox Valley Tracker</span>
         </Link>
       </div>
 
@@ -80,7 +77,7 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
       <div className="mt-auto p-4">
         <div className="bg-muted/50 rounded-xl p-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Fox Valley Finance Tracker
+            Fox Valley Tracker
           </p>
           <p className="text-[10px] text-muted-foreground/60 mt-1">
             v1.0
