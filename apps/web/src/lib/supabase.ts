@@ -342,8 +342,8 @@ export function getDocumentPublicUrl(storagePath: string): string {
 }
 export async function searchAll(query: string) {
   const { data, error } = await supabase
-    .rpc('search_all', { query_text: query });
-  
+    .rpc('search_all', { query_text: query, p_project_id: DEFAULT_PROJECT_ID });
+
   if (error) throw error;
   return data;
 }

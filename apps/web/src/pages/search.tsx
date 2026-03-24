@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, FileText, Building2, Receipt, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search as SearchIcon, FileText, Building2, Receipt, X, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Currency } from '@/components/currency';
 import { VendorTypeBadge } from '@/components/badge';
 import type { Vendor, Receipt as ReceiptType, Estimate } from '@/types';
-import { searchAll } from '@/lib/supabase';
+import { getVendors, getReceipts, getEstimates } from '@/lib/supabase';
 
 interface SearchResult {
   type: 'vendor' | 'receipt' | 'estimate';
@@ -33,11 +34,57 @@ export function SearchPage() {
     setLoading(true);
     setHasSearched(true);
     setError(null);
-    
+
     try {
-      // Use the search_all RPC if available, otherwise do client-side search
-      const searchResults = await searchAll(searchQuery);
-      setResults(searchResults || []);
+      // Fetch all data and do client-side search for better results
+      const [vendors, receipts, estimates] = await Promise.all([
+        getVendors(),
+        getReceipts(),
+        getEstimates()
+      ]);
+
+      const searchLower = searchQuery.toLowerCase();
+      const matchedResults: SearchResult[] = [];
+
+      // Search vendors
+      vendors.forEach(vendor => {
+        if (
+          vendor.name.toLowerCase().includes(searchLower) ||
+          vendor.display_id.toLowerCase().includes(searchLower) ||
+          vendor.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          vendor.notes?.toLowerCase().includes(searchLower)
+        ) {
+          matchedResults.push({ type: 'vendor', data: vendor, score: 1 });
+        }
+      });
+
+      // Search receipts
+      receipts.forEach(receipt => {
+        if (
+          receipt.display_id.toLowerCase().includes(searchLower) ||
+          receipt.vendor_ref?.toLowerCase().includes(searchLower) ||
+          receipt.vendor?.name.toLowerCase().includes(searchLower) ||
+          receipt.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          receipt.notes?.toLowerCase().includes(searchLower)
+        ) {
+          matchedResults.push({ type: 'receipt', data: receipt, score: 1 });
+        }
+      });
+
+      // Search estimates
+      estimates.forEach(estimate => {
+        if (
+          estimate.title.toLowerCase().includes(searchLower) ||
+          estimate.display_id.toLowerCase().includes(searchLower) ||
+          estimate.vendor_ref?.toLowerCase().includes(searchLower) ||
+          estimate.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          estimate.notes?.toLowerCase().includes(searchLower)
+        ) {
+          matchedResults.push({ type: 'estimate', data: estimate, score: 1 });
+        }
+      });
+
+      setResults(matchedResults);
     } catch (err) {
       console.error('Search failed:', err);
       setError(err instanceof Error ? err.message : 'Search failed');
@@ -123,10 +170,15 @@ export function SearchPage() {
 }
 
 function SearchResultCard({ result }: { result: SearchResult }) {
+  const navigate = useNavigate();
+
   if (result.type === 'vendor') {
     const vendor = result.data as Vendor;
     return (
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+      <Card
+        className="hover:border-primary/50 transition-colors cursor-pointer group"
+        onClick={() => navigate(`/vendors/${vendor.display_id}`)}
+      >
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -146,6 +198,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
                 </div>
               )}
             </div>
+            <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </CardContent>
       </Card>
@@ -155,7 +208,14 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   if (result.type === 'receipt') {
     const receipt = result.data as ReceiptType;
     return (
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+      <Card
+        className="hover:border-primary/50 transition-colors cursor-pointer group"
+        onClick={() => {
+          if (receipt.vendor?.display_id) {
+            navigate(`/vendors/${receipt.vendor.display_id}`);
+          }
+        }}
+      >
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -177,6 +237,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
                 </div>
               )}
             </div>
+            <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </CardContent>
       </Card>
@@ -186,7 +247,14 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   if (result.type === 'estimate') {
     const estimate = result.data as Estimate;
     return (
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+      <Card
+        className="hover:border-primary/50 transition-colors cursor-pointer group"
+        onClick={() => {
+          if (estimate.vendor?.display_id) {
+            navigate(`/vendors/${estimate.vendor.display_id}`);
+          }
+        }}
+      >
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -201,6 +269,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
                 {estimate.display_id} • {estimate.date}
               </p>
             </div>
+            <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </CardContent>
       </Card>
