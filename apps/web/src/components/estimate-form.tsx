@@ -95,45 +95,50 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-2xl p-8">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-xl">
             {estimate ? 'Edit Estimate' : 'Add New Estimate'}
           </DialogTitle>
-          <DialogDescription>
-            {estimate 
-              ? 'Update the estimate details below.' 
+          <DialogDescription className="text-base mt-2">
+            {estimate
+              ? 'Update the estimate details below.'
               : 'Enter the estimate information for this vendor.'}
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          {/* Section: Basic Info */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Basic Information</h3>
+            <div className="grid grid-cols-2 gap-5">
+            <div className="col-span-2 space-y-2">
               <Label htmlFor="title">Title/Description *</Label>
               <Input
                 id="title"
                 {...form.register('title')}
                 placeholder="e.g., Kitchen Renovation - Phase 1"
+                className="h-11"
               />
               {form.formState.errors.title && (
                 <p className="text-sm text-destructive mt-1">{form.formState.errors.title.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="vendor_ref">Vendor Reference/Quote # *</Label>
               <Input
                 id="vendor_ref"
                 {...form.register('vendor_ref')}
                 placeholder="e.g., Q-2026-001"
+                className="h-11"
               />
               {form.formState.errors.vendor_ref && (
                 <p className="text-sm text-destructive mt-1">{form.formState.errors.vendor_ref.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label>Date *</Label>
               <Popover open={dateOpen} onOpenChange={setDateOpen}>
                 <PopoverTrigger>
@@ -141,7 +146,7 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                     type="button"
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal h-11",
                       !form.watch('date') && "text-muted-foreground"
                     )}
                   >
@@ -162,8 +167,15 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                 </PopoverContent>
               </Popover>
             </div>
-            
-            <div>
+            </div>
+          </div>
+
+          {/* Section: Financial & Status */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Financial & Status</h3>
+            <div className="grid grid-cols-2 gap-5">
+
+            <div className="space-y-2">
               <Label htmlFor="estimated_total">Estimated Total (CAD) *</Label>
               <Input
                 id="estimated_total"
@@ -171,19 +183,20 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                 step="0.01"
                 {...form.register('estimated_total', { valueAsNumber: true })}
                 placeholder="0.00"
+                className="h-11"
               />
               {form.formState.errors.estimated_total && (
                 <p className="text-sm text-destructive mt-1">{form.formState.errors.estimated_total.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={form.watch('status')}
                 onValueChange={(value) => form.setValue('status', value as EstimateStatus)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,30 +206,36 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="col-span-2">
+            </div>
+          </div>
+
+          {/* Section: Notes */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 {...form.register('notes')}
                 placeholder="Any additional details about this estimate..."
-                rows={3}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <DocumentUpload
-                onFileSelect={setSelectedFile}
-                selectedFile={selectedFile}
+                rows={4}
+                className="resize-none"
               />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          {/* Section: Document Upload */}
+          <div className="space-y-4 pt-4 border-t">
+            <DocumentUpload
+              onFileSelect={setSelectedFile}
+              selectedFile={selectedFile}
+            />
+          </div>
+
+          <DialogFooter className="gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11 px-6">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="h-11 px-6">
               {estimate ? 'Update Estimate' : 'Create Estimate'}
             </Button>
           </DialogFooter>

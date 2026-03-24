@@ -49,36 +49,36 @@ export function DocumentUpload({ onFileSelect, selectedFile }: DocumentUploadPro
       {!selectedFile ? (
         <div
           onClick={handleClick}
-          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+          className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors bg-muted/20"
         >
-          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
+          <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-sm font-medium mb-1">
             Click to upload PDF or image
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground">
             Max size: 10MB
           </p>
         </div>
       ) : (
-        <div className="border rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+        <div className="border rounded-xl p-5 bg-muted/20">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
               {selectedFile.type.includes('pdf') ? (
-                <FileText className="h-5 w-5 text-red-500" />
+                <FileText className="h-6 w-6 text-red-500" />
               ) : (
-                <FileText className="h-5 w-5 text-blue-500" />
+                <FileText className="h-6 w-6 text-blue-500" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{selectedFile.name}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {formatFileSize(selectedFile.size)}
               </p>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-9 w-9"
               onClick={handleClear}
             >
               <X className="h-4 w-4" />

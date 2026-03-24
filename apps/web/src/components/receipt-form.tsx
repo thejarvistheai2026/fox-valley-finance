@@ -153,33 +153,37 @@ export function ReceiptFormDialog({
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-8">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-xl">
             {receipt ? 'Edit Receipt' : 'Add New Receipt'}
           </DialogTitle>
-          <DialogDescription>
-            {receipt 
-              ? 'Update the receipt details below.' 
+          <DialogDescription className="text-base mt-2">
+            {receipt
+              ? 'Update the receipt details below.'
               : 'Enter the receipt information.'}
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          {/* Section: Basic Info */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Basic Information</h3>
+            <div className="grid grid-cols-2 gap-5">
+            <div className="space-y-2">
               <Label htmlFor="vendor_ref">Vendor Reference/Invoice # *</Label>
               <Input
                 id="vendor_ref"
                 {...form.register('vendor_ref')}
                 placeholder="e.g., INV-2026-001"
+                className="h-11"
               />
               {form.formState.errors.vendor_ref && (
                 <p className="text-sm text-destructive mt-1">{form.formState.errors.vendor_ref.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label>Date *</Label>
               <Popover open={dateOpen} onOpenChange={setDateOpen}>
                 <PopoverTrigger>
@@ -187,7 +191,7 @@ export function ReceiptFormDialog({
                     type="button"
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal h-11",
                       !form.watch('date') && "text-muted-foreground"
                     )}
                   >
@@ -208,8 +212,14 @@ export function ReceiptFormDialog({
                 </PopoverContent>
               </Popover>
             </div>
-            
-            <div>
+            </div>
+          </div>
+
+          {/* Section: Financial */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Financial Details</h3>
+            <div className="grid grid-cols-4 gap-5">
+            <div className="space-y-2">
               <Label htmlFor="subtotal">Subtotal (CAD) *</Label>
               <Input
                 id="subtotal"
@@ -217,10 +227,11 @@ export function ReceiptFormDialog({
                 step="0.01"
                 {...form.register('subtotal', { valueAsNumber: true })}
                 placeholder="0.00"
+                className="h-11"
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="gst_amount">{taxLabels[taxProvince].gst}</Label>
               <Input
                 id="gst_amount"
@@ -228,10 +239,11 @@ export function ReceiptFormDialog({
                 step="0.01"
                 {...form.register('gst_amount', { valueAsNumber: true })}
                 placeholder="0.00"
+                className="h-11"
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="pst_amount">{taxLabels[taxProvince].pst}</Label>
               <Input
                 id="pst_amount"
@@ -239,10 +251,11 @@ export function ReceiptFormDialog({
                 step="0.01"
                 {...form.register('pst_amount', { valueAsNumber: true })}
                 placeholder="0.00"
+                className="h-11"
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="total">Total (CAD)</Label>
               <Input
                 id="total"
@@ -250,17 +263,23 @@ export function ReceiptFormDialog({
                 step="0.01"
                 {...form.register('total', { valueAsNumber: true })}
                 readOnly
-                className="bg-muted"
+                className="bg-muted h-11 font-semibold"
               />
             </div>
-            
-            <div>
+            </div>
+          </div>
+
+          {/* Section: Linking */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Additional Information</h3>
+            <div className="grid grid-cols-2 gap-5">
+            <div className="space-y-2">
               <Label htmlFor="payment_type">Payment Type</Label>
               <Select
                 value={form.watch('payment_type') || undefined}
                 onValueChange={(value) => form.setValue('payment_type', value || undefined)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,15 +291,15 @@ export function ReceiptFormDialog({
                 </SelectContent>
               </Select>
             </div>
-            
+
             {vendorType === 'contract' && estimates.length > 0 && (
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="estimate_id">Link to Estimate</Label>
                 <Select
                   value={form.watch('estimate_id') || undefined}
                   onValueChange={(value) => form.setValue('estimate_id', value || undefined)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Select estimate (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -294,8 +313,12 @@ export function ReceiptFormDialog({
                 </Select>
               </div>
             )}
-            
-            <div className="col-span-2">
+            </div>
+          </div>
+
+          {/* Section: Tags */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
               <div className="flex gap-2">
                 <Input
@@ -309,20 +332,21 @@ export function ReceiptFormDialog({
                     }
                   }}
                   placeholder="Add a tag and press Enter"
+                  className="h-11"
                 />
-                <Button type="button" variant="outline" onClick={addTag}>
+                <Button type="button" variant="outline" onClick={addTag} className="h-11 px-6">
                   Add
                 </Button>
               </div>
               {form.getValues('tags').length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-2 mt-3">
                   {form.getValues('tags').map((tag) => (
-                    <Badge key={tag} variant="secondary" className="gap-1">
+                    <Badge key={tag} variant="secondary" className="gap-1 px-3 py-1 text-sm">
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="hover:text-destructive"
+                        className="hover:text-destructive ml-1"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -331,24 +355,32 @@ export function ReceiptFormDialog({
                 </div>
               )}
             </div>
-            
-            <div className="col-span-2">
+            </div>
+
+          {/* Section: Notes */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 {...form.register('notes')}
                 placeholder="Any additional details..."
-                rows={3}
+                rows={4}
+                className="resize-none"
               />
             </div>
-            
-            <div className="col-span-2">
+            </div>
+
+          {/* Section: Document Upload */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-2">
               <Label>Attach Document</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-2">
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center bg-muted/30 hover:bg-muted/50 transition-colors">
+                <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-sm font-medium mb-1">
                   {selectedFile ? selectedFile.name : 'Drag and drop or click to upload'}
                 </p>
+                <p className="text-xs text-muted-foreground mb-4">PDF, JPG, or PNG up to 10MB</p>
                 <Input
                   type="file"
                   accept="image/*,.pdf"
@@ -356,7 +388,7 @@ export function ReceiptFormDialog({
                   className="hidden"
                   id="file-upload"
                 />
-                <Button type="button" variant="outline" size="sm">
+                <Button type="button" variant="outline" size="sm" className="h-9 px-4">
                   <label htmlFor="file-upload" className="cursor-pointer">
                     Select File
                   </label>
@@ -364,12 +396,12 @@ export function ReceiptFormDialog({
               </div>
             </div>
           </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+
+          <DialogFooter className="gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11 px-6">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="h-11 px-6">
               {receipt ? 'Update Receipt' : 'Create Receipt'}
             </Button>
           </DialogFooter>

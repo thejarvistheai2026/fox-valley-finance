@@ -97,39 +97,43 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-2xl p-8">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-xl">
             {vendor ? 'Edit Vendor' : 'Add New Vendor'}
           </DialogTitle>
-          <DialogDescription>
-            {vendor 
-              ? 'Update the vendor information below.' 
+          <DialogDescription className="text-base mt-2">
+            {vendor
+              ? 'Update the vendor information below.'
               : 'Enter the details for your new vendor.'}
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          {/* Section: Basic Info */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Basic Information</h3>
+            <div className="grid grid-cols-2 gap-5">
+            <div className="col-span-2 space-y-2">
               <Label htmlFor="name">Vendor Name *</Label>
               <Input
                 id="name"
                 {...form.register('name')}
                 placeholder="e.g., Home Depot, Elite Electric"
+                className="h-11"
               />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive mt-1">{form.formState.errors.name.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="type">Vendor Type *</Label>
               <Select
                 value={form.watch('type')}
                 onValueChange={(value) => form.setValue('type', value as VendorType)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,14 +142,14 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
                 </SelectContent>
               </Select>
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="tax_province">Tax Province *</Label>
               <Select
                 value={form.watch('tax_province')}
                 onValueChange={(value) => form.setValue('tax_province', value as TaxProvince)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select province" />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,67 +158,87 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
                 </SelectContent>
               </Select>
             </div>
-            
-            <div>
+            </div>
+          </div>
+
+          {/* Section: Contact Info */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Contact Information</h3>
+            <div className="grid grid-cols-2 gap-5">
+
+            <div className="space-y-2">
               <Label htmlFor="contact_name">Contact Name</Label>
               <Input
                 id="contact_name"
                 {...form.register('contact_name')}
                 placeholder="e.g., John Smith"
+                className="h-11"
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 {...form.register('email')}
                 placeholder="contact@example.com"
+                className="h-11"
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
                 type="tel"
                 {...form.register('phone')}
                 placeholder="(555) 123-4567"
+                className="h-11"
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
                 type="url"
                 {...form.register('website')}
                 placeholder="https://example.com"
+                className="h-11"
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-2 space-y-2">
               <Label htmlFor="address">Address</Label>
               <Textarea
                 id="address"
                 {...form.register('address')}
                 placeholder="123 Main St, Toronto, ON M5A 1A1"
-                rows={2}
+                rows={3}
+                className="resize-none"
               />
             </div>
-            
-            <div className="col-span-2">
+            </div>
+          </div>
+
+          {/* Section: Additional Info */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Additional Information</h3>
+            <div className="space-y-5">
+
+            <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 {...form.register('notes')}
                 placeholder="Any additional notes about this vendor..."
-                rows={3}
+                rows={4}
+                className="resize-none"
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
               <Input
                 id="tags"
@@ -224,16 +248,18 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
                 }}
                 value={form.watch('tags')?.join(', ') || ''}
                 placeholder="e.g., plumbing, kitchen, materials (comma separated)"
+                className="h-11"
               />
               <p className="text-xs text-muted-foreground mt-1">Separate tags with commas</p>
             </div>
+            </div>
           </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+
+          <DialogFooter className="gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11 px-6">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="h-11 px-6">
               {vendor ? 'Update Vendor' : 'Create Vendor'}
             </Button>
           </DialogFooter>
