@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test RPC</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <pre id="result">Loading...</pre>
+  <script>
+    const supabase = window.supabase.createClient(
+      'YOUR_SUPABASE_URL',
+      'YOUR_SUPABASE_ANON_KEY'
+    );
+    
+    async function test() {
+      try {
+        const { data, error } = await supabase.rpc('get_dashboard_summary');
+        if (error) throw error;
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('result').textContent = 'Error: ' + err.message;
+      }
+    }
+    test();
+  </script>
+</body>
+</html>

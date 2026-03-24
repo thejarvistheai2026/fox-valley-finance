@@ -100,8 +100,6 @@ export function DashboardPage() {
           icon={TrendingUp}
           description="Across all contract vendors"
           loading={loading}
-          trend="+12%"
-          trendUp={true}
         />
         <SummaryCard
           title="Total Paid"
@@ -109,8 +107,6 @@ export function DashboardPage() {
           icon={DollarSign}
           description={`In ${dateRange.label}`}
           loading={loading}
-          trend="+8%"
-          trendUp={true}
         />
 
         <SummaryCard
