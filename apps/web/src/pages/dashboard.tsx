@@ -43,11 +43,15 @@ export function DashboardPage() {
         
         // Fetch dashboard summary and vendor summaries
         const summaryData = await getDashboardSummary(dateRangeParam);
+        console.log('Dashboard summary:', summaryData);
+
         const vendorsData = await getVendorSummaries(dateRangeParam);
-        
+        console.log('Vendor summaries:', vendorsData);
+
         // Fetch recent receipts (limit to 10)
         const receiptsData = await getReceipts(dateRangeParam ? { dateRange: dateRangeParam } : undefined);
-        
+        console.log('Receipts:', receiptsData);
+
         setSummary(summaryData);
         setVendors(vendorsData || []);
         setRecentReceipts((receiptsData || []).slice(0, 10));
