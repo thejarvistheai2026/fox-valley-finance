@@ -81,7 +81,10 @@ export function DocumentUploadDialog({
     if (files.length > 0) {
       const file = files[0];
       const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      if (validTypes.includes(file.type)) {
+      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
+      if (validTypes.includes(file.type) || validExtensions.includes(fileExtension)) {
         setSelectedFile(file);
         if (!displayName) {
           setDisplayName(file.name.replace(/\.[^/.]+$/, ''));

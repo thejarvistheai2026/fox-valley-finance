@@ -51,9 +51,12 @@ export function DocumentUpload({ onFileSelect, selectedFile }: DocumentUploadPro
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       const file = files[0];
-      // Validate file type
+      // Validate file type by extension and mime type
       const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      if (validTypes.includes(file.type)) {
+      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
+      if (validTypes.includes(file.type) || validExtensions.includes(fileExtension)) {
         onFileSelect(file);
       }
     }
