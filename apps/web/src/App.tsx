@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { DashboardPage } from '@/pages/dashboard';
 import { VendorsPage } from '@/pages/vendors';
 import { VendorDetailPage } from '@/pages/vendor-detail';
+import { DocumentsPage } from '@/pages/documents';
 import { InboxPage } from '@/pages/inbox';
 import { SearchPage } from '@/pages/search';
 import { LoginPage } from '@/pages/login';
@@ -25,6 +26,7 @@ function App() {
               <Route index element={<DashboardPage />} />
               <Route path="vendors" element={<VendorsPage />} />
               <Route path="vendors/:id" element={<VendorDetailPage />} />
+              <Route path="documents" element={<DocumentsPage />} />
               <Route path="inbox" element={<InboxPage />} />
               <Route path="search" element={<SearchPage />} />
             </Route>

@@ -7,7 +7,8 @@ import {
   Menu,
   Home,
   LogOut,
-  User
+  User,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/vendors', label: 'Vendors', icon: Building2 },
+  { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/inbox', label: 'Inbox', icon: Inbox },
   { path: '/search', label: 'Search', icon: Search },
 ];

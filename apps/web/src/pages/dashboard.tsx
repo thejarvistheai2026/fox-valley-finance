@@ -12,17 +12,21 @@ import {
   Download,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  FileText,
+  ExternalLink
 } from 'lucide-react';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
-import type { DashboardSummary, Receipt as ReceiptType } from '@/types';
+import type { DashboardSummary, Receipt as ReceiptType, Document } from '@/types';
 import {
   getDashboardSummary,
   getReceipts,
+  getAllDocuments,
   generateCSVReceipts,
   downloadCSV,
-  deleteReceipt
+  deleteReceipt,
+  getDocumentPublicUrl
 } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +35,7 @@ export function DashboardPage() {
   const { dateRange, setDateRange } = useDateRange('All time');
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentReceipts, setRecentReceipts] = useState<ReceiptType[]>([]);
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -53,9 +58,14 @@ export function DashboardPage() {
         const receiptsData = await getReceipts(dateRangeParam ? { dateRange: dateRangeParam } : undefined);
         console.log('Receipts:', receiptsData);
 
+        // Fetch recent documents (limit to 5)
+        const documentsData = await getAllDocuments({ limit: 5 });
+        console.log('Documents:', documentsData);
+
         // RPC returns an array, get the first item
         setSummary(Array.isArray(summaryData) ? summaryData[0] : summaryData);
         setRecentReceipts((receiptsData || []).slice(0, 10));
+        setRecentDocuments(documentsData || []);
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
@@ -162,100 +172,167 @@ export function DashboardPage() {
         />
       </div>
 
-      {/* Recent Activity */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-1">
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-3">
-                  <Skeleton className="h-10 w-10 rounded-xl" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-32 mb-1" />
-                    <Skeleton className="h-3 w-24" />
+      {/* Two Column Layout: Recent Activity & Documents */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1">
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3">
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-4 w-20" />
                   </div>
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              ))
-            ) : recentReceipts.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Receipt className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground">No recent activity</p>
-                <p className="text-sm text-muted-foreground/60 mt-1">Receipts will appear here</p>
-              </div>
-            ) : (
-              recentReceipts.map((receipt) => (
-                <div
-                  key={receipt.id}
-                  className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
-                    <Receipt className="h-5 w-5 text-primary" />
+                ))
+              ) : recentReceipts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Receipt className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{receipt.vendor?.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {receipt.payment_type && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-muted">{receipt.payment_type}</span>}
-                      <span className="ml-2">{receipt.date}</span>
+                  <p className="text-muted-foreground">No recent activity</p>
+                  <p className="text-sm text-muted-foreground/60 mt-1">Receipts will appear here</p>
+                </div>
+              ) : (
+                recentReceipts.map((receipt) => (
+                  <div
+                    key={receipt.id}
+                    className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
+                      <Receipt className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{receipt.vendor?.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {receipt.payment_type && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-muted">{receipt.payment_type}</span>}
+                        <span className="ml-2">{receipt.date}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right mr-2">
+                        <div className="font-semibold">
+                          <Currency amount={receipt.total} />
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {receipt.display_id}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => navigate(`/receipts/${receipt.id}`)}
+                        title="View receipt"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => navigate(`/receipts/${receipt.id}/edit`)}
+                        title="Edit receipt"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={async () => {
+                          if (!confirm('Delete this receipt?')) return;
+                          try {
+                            await deleteReceipt(receipt.id);
+                            setRecentReceipts(prev => prev.filter(r => r.id !== receipt.id));
+                          } catch (err) {
+                            console.error('Failed to delete receipt:', err);
+                            alert('Failed to delete receipt');
+                          }
+                        }}
+                        title="Delete receipt"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-right mr-2">
-                      <div className="font-semibold">
-                        <Currency amount={receipt.total} />
-                      </div>
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {receipt.display_id}
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Documents */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4 flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Recent Documents</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/documents')}>
+              View All
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1">
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3">
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                ))
+              ) : recentDocuments.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground">No documents yet</p>
+                  <p className="text-sm text-muted-foreground/60 mt-1">Upload documents from vendors</p>
+                </div>
+              ) : (
+                recentDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center group-hover:from-emerald-200 group-hover:to-emerald-100 transition-all">
+                      {doc.file_type.includes('pdf') ? (
+                        <FileText className="h-5 w-5 text-red-500" />
+                      ) : (
+                        <FileText className="h-5 w-5 text-blue-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate" title={doc.display_name}>{doc.display_name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {doc.vendor?.name}
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => navigate(`/receipts/${receipt.id}`)}
-                      title="View receipt"
+                      onClick={() => window.open(getDocumentPublicUrl(doc.storage_path), '_blank')}
+                      title="View document"
                     >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => navigate(`/receipts/${receipt.id}/edit`)}
-                      title="Edit receipt"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={async () => {
-                        if (!confirm('Delete this receipt?')) return;
-                        try {
-                          await deleteReceipt(receipt.id);
-                          setRecentReceipts(prev => prev.filter(r => r.id !== receipt.id));
-                        } catch (err) {
-                          console.error('Failed to delete receipt:', err);
-                          alert('Failed to delete receipt');
-                        }
-                      }}
-                      title="Delete receipt"
-                    >
-                      <Trash2 className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

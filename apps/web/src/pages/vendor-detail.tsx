@@ -29,7 +29,8 @@ import { Currency } from '@/components/currency';
 import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor } from '@/lib/supabase';
+import { DocumentUploadDialog } from '@/components/document-upload-dialog';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -44,6 +45,7 @@ export function VendorDetailPage() {
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [receiptDocument, setReceiptDocument] = useState<Document | null>(null);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  const [documentUploadOpen, setDocumentUploadOpen] = useState(false);
 
   useEffect(() => {
     async function fetchVendorData() {
@@ -273,6 +275,27 @@ export function VendorDetailPage() {
       console.error('Failed to unlink receipt:', err);
       alert('Failed to unlink receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!vendor) return;
+    if (!confirm('Are you sure you want to delete this document?')) return;
+
+    try {
+      await deleteDocument(documentId);
+      // Refresh documents
+      const docsData = await getDocuments(vendor.id);
+      setDocuments(docsData);
+    } catch (err) {
+      console.error('Failed to delete document:', err);
+      alert('Failed to delete document: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleDocumentsUpdated = async () => {
+    if (!vendor) return;
+    const docsData = await getDocuments(vendor.id);
+    setDocuments(docsData);
   };
 
   const getLinkedReceipts = (estimateId: string) => {
@@ -518,25 +541,30 @@ export function VendorDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Documents</CardTitle>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setDocumentUploadOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Document
           </Button>
         </CardHeader>
         <CardContent>
           {documents.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No documents uploaded yet
-            </p>
+            <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/20">
+              <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No documents uploaded yet</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => setDocumentUploadOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload First Document
+              </Button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                  className="border rounded-xl p-4 hover:border-primary/50 hover:shadow-sm transition-all bg-card"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
                       {doc.file_type.includes('pdf') ? (
                         <FileText className="h-5 w-5 text-red-500" />
                       ) : (
@@ -558,10 +586,23 @@ export function VendorDetailPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button variant="ghost" size="sm" className="flex-1">
+                  <div className="flex gap-2 mt-4 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => window.open(getDocumentPublicUrl(doc.storage_path), '_blank')}
+                    >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteDocument(doc.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -570,6 +611,17 @@ export function VendorDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Document Upload Dialog */}
+      {vendor && (
+        <DocumentUploadDialog
+          open={documentUploadOpen}
+          onOpenChange={setDocumentUploadOpen}
+          vendors={[vendor]}
+          defaultVendorId={vendor.id}
+          onUploadComplete={handleDocumentsUpdated}
+        />
+      )}
 
       {/* Receipt Detail Dialog */}
       <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>

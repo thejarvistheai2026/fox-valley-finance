@@ -268,10 +268,21 @@ export async function getVendorSummaries(dateRange?: { start: string; end: strin
 export async function getDocuments(vendorId: string) {
   const { data, error } = await supabase
     .from('documents')
-    .select('*')
+    .select('*, vendor:vendors(*)')
     .eq('vendor_id', vendorId)
     .order('created_at', { ascending: false });
-  
+
+  if (error) throw error;
+  return data as Document[];
+}
+
+export async function getAllDocuments(options?: { limit?: number }) {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*, vendor:vendors(*)')
+    .order('created_at', { ascending: false })
+    .limit(options?.limit || 100);
+
   if (error) throw error;
   return data as Document[];
 }
@@ -291,7 +302,7 @@ export async function createDocument(document: Omit<Document, 'id' | 'display_id
 export async function uploadDocument(
   file: File,
   projectId: string,
-  entityType: 'estimates' | 'receipts',
+  entityType: 'vendors' | 'estimates' | 'receipts',
   entityId: string
 ): Promise<{ path: string; url: string }> {
   const fileExt = file.name.split('.').pop();
@@ -311,6 +322,15 @@ export async function uploadDocument(
     .getPublicUrl(storagePath);
 
   return { path: storagePath, url: publicUrl };
+}
+
+export async function deleteDocument(id: string) {
+  const { error } = await supabase
+    .from('documents')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 // Get public URL for a document
