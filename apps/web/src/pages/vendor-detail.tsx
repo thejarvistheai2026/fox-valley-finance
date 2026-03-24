@@ -30,7 +30,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument, supabase } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -53,10 +53,6 @@ export function VendorDetailPage() {
 
       setLoading(true);
       try {
-        // Check auth state first
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Auth session:', session ? 'authenticated' : 'not authenticated');
-
         // Fetch vendor by display_id (e.g., "VEN-0005")
         const vendorData = await getVendorByDisplayId(id);
         setVendor(vendorData);
@@ -71,10 +67,6 @@ export function VendorDetailPage() {
         setEstimates(estimatesData);
         setReceipts(receiptsData);
         setDocuments(docsData);
-        console.log('Fetched documents:', docsData);
-        if (docsData.length > 0) {
-          console.log('First doc storage_path:', docsData[0].storage_path);
-        }
       } catch (err) {
         console.error('Failed to fetch vendor:', err);
         setVendor(null);
@@ -616,7 +608,6 @@ export function VendorDetailPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {documents.map((doc) => {
-                console.log('Document:', doc.display_name, 'storage_path:', doc.storage_path);
                 const docUrl = doc.storage_path ? getDocumentPublicUrl(doc.storage_path) : null;
                 return (
                 <div
@@ -635,9 +626,6 @@ export function VendorDetailPage() {
                       <p className="font-medium truncate">{doc.display_name}</p>
                       <p className="text-xs text-muted-foreground">
                         {doc.display_id} • {formatFileSize(doc.file_size_bytes)}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono mt-1 truncate" title={doc.storage_path}>
-                        Path: {doc.storage_path || 'MISSING'}
                       </p>
                       {doc.estimate_id && (
                         <p className="text-xs text-muted-foreground">
