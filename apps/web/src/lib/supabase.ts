@@ -266,13 +266,18 @@ export async function getVendorSummaries(dateRange?: { start: string; end: strin
 
 // Document queries
 export async function getDocuments(vendorId: string) {
+  console.log('Fetching documents for vendor:', vendorId);
   const { data, error } = await supabase
     .from('documents')
     .select('*, vendor:vendors(*)')
     .eq('vendor_id', vendorId)
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching documents:', error);
+    throw error;
+  }
+  console.log('Fetched documents:', data?.length, data);
   return data as Document[];
 }
 
@@ -288,13 +293,18 @@ export async function getAllDocuments(options?: { limit?: number }) {
 }
 
 export async function createDocument(document: Omit<Document, 'id' | 'display_id' | 'created_at'>) {
+  console.log('Creating document:', document);
   const { data, error } = await supabase
     .from('documents')
     .insert(document)
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error creating document:', error);
+    throw error;
+  }
+  console.log('Created document:', data);
   return data as Document;
 }
 
