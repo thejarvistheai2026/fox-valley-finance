@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Upload, FileText, X } from 'lucide-react';
 import { createDocument, uploadDocument } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 import type { Vendor } from '@/types';
 
 interface DocumentUploadDialogProps {
@@ -45,6 +46,7 @@ export function DocumentUploadDialog({
   const [vendorRef, setVendorRef] = useState('');
   const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +56,36 @@ export function DocumentUploadDialog({
       // Auto-fill display name from file name if empty
       if (!displayName) {
         setDisplayName(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (validTypes.includes(file.type)) {
+        setSelectedFile(file);
+        if (!displayName) {
+          setDisplayName(file.name.replace(/\.[^/.]+$/, ''));
+        }
       }
     }
   };
@@ -127,10 +159,23 @@ export function DocumentUploadDialog({
             {!selectedFile ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors bg-muted/20"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={cn(
+                  "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors",
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 bg-muted/20 hover:border-primary/50 hover:bg-muted/30"
+                )}
               >
-                <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">Click to upload PDF or image</p>
+                <Upload className={cn(
+                  "h-10 w-10 mx-auto mb-3 transition-colors",
+                  isDragging ? "text-primary" : "text-muted-foreground"
+                )} />
+                <p className="text-sm font-medium mb-1">
+                  {isDragging ? 'Drop file here' : 'Click or drag to upload PDF or image'}
+                </p>
                 <p className="text-xs text-muted-foreground">Max size: 10MB</p>
                 <input
                   ref={fileInputRef}
