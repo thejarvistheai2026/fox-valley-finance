@@ -30,7 +30,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument, supabase } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -53,6 +53,10 @@ export function VendorDetailPage() {
 
       setLoading(true);
       try {
+        // Check auth state first
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Auth session:', session ? 'authenticated' : 'not authenticated');
+
         // Fetch vendor by display_id (e.g., "VEN-0005")
         const vendorData = await getVendorByDisplayId(id);
         setVendor(vendorData);
@@ -67,6 +71,10 @@ export function VendorDetailPage() {
         setEstimates(estimatesData);
         setReceipts(receiptsData);
         setDocuments(docsData);
+        console.log('Fetched documents:', docsData);
+        if (docsData.length > 0) {
+          console.log('First doc storage_path:', docsData[0].storage_path);
+        }
       } catch (err) {
         console.error('Failed to fetch vendor:', err);
         setVendor(null);
@@ -607,14 +615,17 @@ export function VendorDetailPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {documents.map((doc) => (
+              {documents.map((doc) => {
+                console.log('Document:', doc.display_name, 'storage_path:', doc.storage_path);
+                const docUrl = doc.storage_path ? getDocumentPublicUrl(doc.storage_path) : null;
+                return (
                 <div
                   key={doc.id}
                   className="border rounded-xl p-4 hover:border-primary/50 hover:shadow-sm transition-all bg-card"
                 >
                   <div className="flex items-start gap-3">
                     <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                      {doc.file_type.includes('pdf') ? (
+                      {doc.file_type?.includes('pdf') ? (
                         <FileText className="h-5 w-5 text-red-500" />
                       ) : (
                         <ReceiptIcon className="h-5 w-5 text-blue-500" />
@@ -624,6 +635,9 @@ export function VendorDetailPage() {
                       <p className="font-medium truncate">{doc.display_name}</p>
                       <p className="text-xs text-muted-foreground">
                         {doc.display_id} • {formatFileSize(doc.file_size_bytes)}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono mt-1 truncate" title={doc.storage_path}>
+                        Path: {doc.storage_path || 'MISSING'}
                       </p>
                       {doc.estimate_id && (
                         <p className="text-xs text-muted-foreground">
@@ -636,20 +650,21 @@ export function VendorDetailPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4 pt-3 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                      const publicUrl = getDocumentPublicUrl(doc.storage_path);
-                      console.log('Opening public URL:', publicUrl);
-                      console.log('Storage path:', doc.storage_path);
-                      window.open(publicUrl, '_blank');
-                    }}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
+                    {docUrl ? (
+                      <a
+                        href={docUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View
+                      </a>
+                    ) : (
+                      <span className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-muted text-muted-foreground cursor-not-allowed">
+                        No file attached
+                      </span>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -660,7 +675,7 @@ export function VendorDetailPage() {
                     </Button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </CardContent>
@@ -753,17 +768,15 @@ export function VendorDetailPage() {
                         {formatFileSize(receiptDocument.file_size_bytes)}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const publicUrl = getDocumentPublicUrl(receiptDocument.storage_path);
-                        window.open(publicUrl, '_blank');
-                      }}
+                    <a
+                      href={getDocumentPublicUrl(receiptDocument.storage_path)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
-                    </Button>
+                    </a>
                   </div>
                 </div>
               ) : (
