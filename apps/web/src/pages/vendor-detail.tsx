@@ -808,18 +808,18 @@ function ContractVendorLayout({
             </p>
           ) : (
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
+              <table className="w-full table-fixed">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="text-left py-2 px-4 font-medium w-8"></th>
-                    <th className="text-left py-2 px-4 font-medium">ID</th>
-                    <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
-                    <th className="text-left py-2 px-4 font-medium">Title</th>
-                    <th className="text-left py-2 px-4 font-medium">Date</th>
-                    <th className="text-right py-2 px-4 font-medium">Est. Total</th>
-                    <th className="text-right py-2 px-4 font-medium">Paid</th>
-                    <th className="text-right py-2 px-4 font-medium">Outstanding</th>
-                    <th className="text-center py-2 px-4 font-medium">Status</th>
+                    <th className="text-left py-2 px-4 font-medium w-10"></th>
+                    <th className="text-left py-2 px-4 font-medium w-20">ID</th>
+                    <th className="text-left py-2 px-4 font-medium w-24">Vendor Ref</th>
+                    <th className="text-left py-2 px-4 font-medium w-40">Title</th>
+                    <th className="text-left py-2 px-4 font-medium w-28">Date</th>
+                    <th className="text-right py-2 px-4 font-medium w-24">Est. Total</th>
+                    <th className="text-right py-2 px-4 font-medium w-20">Paid</th>
+                    <th className="text-right py-2 px-4 font-medium w-24">Outstanding</th>
+                    <th className="text-center py-2 px-4 font-medium w-20">Status</th>
                     <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                   </tr>
                 </thead>
@@ -922,17 +922,17 @@ function ContractVendorLayout({
                                     No receipts linked to this estimate yet.
                                   </p>
                                 ) : (
-                                  <table className="w-full text-sm">
+                                  <table className="w-full text-sm table-fixed">
                                     <thead>
                                       <tr className="border-b">
-                                        <th className="text-left py-2 px-4 font-medium w-8"></th>
-                                        <th className="text-left py-2 px-4 font-medium">ID</th>
-                                        <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
-                                        <th className="text-left py-2 px-4 font-medium">Type</th>
-                                        <th className="text-left py-2 px-4 font-medium">Date</th>
-                                        <th className="text-right py-2 px-4 font-medium">Total</th>
-                                        <th className="text-right py-2 px-4 font-medium">HST</th>
-                                        <th className="text-center py-2 px-4 font-medium">Status</th>
+                                        <th className="text-left py-2 px-4 font-medium w-10"></th>
+                                        <th className="text-left py-2 px-4 font-medium w-20">ID</th>
+                                        <th className="text-left py-2 px-4 font-medium w-24">Vendor Ref</th>
+                                        <th className="text-left py-2 px-4 font-medium w-40">Type</th>
+                                        <th className="text-left py-2 px-4 font-medium w-28">Date</th>
+                                        <th className="text-right py-2 px-4 font-medium w-24">Total</th>
+                                        <th className="text-right py-2 px-4 font-medium w-20">HST</th>
+                                        <th className="text-center py-2 px-4 font-medium w-20">Status</th>
                                         <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                                       </tr>
                                     </thead>
