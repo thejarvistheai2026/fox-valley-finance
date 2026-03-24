@@ -52,7 +52,8 @@ export function DashboardPage() {
         const receiptsData = await getReceipts(dateRangeParam ? { dateRange: dateRangeParam } : undefined);
         console.log('Receipts:', receiptsData);
 
-        setSummary(summaryData);
+        // RPC returns an array, get the first item
+        setSummary(Array.isArray(summaryData) ? summaryData[0] : summaryData);
         setVendors(vendorsData || []);
         setRecentReceipts((receiptsData || []).slice(0, 10));
       } catch (err) {
