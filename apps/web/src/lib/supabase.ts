@@ -340,6 +340,17 @@ export function getDocumentPublicUrl(storagePath: string): string {
     .getPublicUrl(storagePath);
   return publicUrl;
 }
+
+// Create signed URL for secure document access (expires in 1 hour)
+export async function createSignedDocumentUrl(storagePath: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(storagePath, 3600); // 1 hour expiry
+
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 export async function searchAll(query: string) {
   const { data, error } = await supabase
     .rpc('search_all', { query_text: query, p_project_id: DEFAULT_PROJECT_ID });
