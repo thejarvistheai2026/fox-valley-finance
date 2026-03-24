@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Building2,
@@ -9,7 +9,8 @@ import {
   Globe,
   MapPin,
   Archive,
-  Edit
+  Edit,
+  X
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -33,27 +34,75 @@ interface VendorListProps {
 
 export function VendorList({ vendors, onArchive, onUpdate }: VendorListProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  const filteredVendors = vendors.filter((vendor) =>
-    vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    vendor.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Get all unique tags from vendors
+  const uniqueTags = useMemo(() => {
+    const tags = new Set<string>();
+    vendors.forEach(vendor => {
+      vendor.tags?.forEach(tag => tags.add(tag));
+    });
+    return Array.from(tags).sort();
+  }, [vendors]);
+
+  const filteredVendors = vendors.filter((vendor) => {
+    const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vendor.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesTag = selectedTag ? vendor.tags?.includes(selectedTag) : true;
+
+    return matchesSearch && matchesTag;
+  });
 
   const activeVendors = filteredVendors.filter((v) => !v.is_archived);
   const archivedVendors = filteredVendors.filter((v) => v.is_archived);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search vendors by name or tags..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-11"
-          />
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search vendors by name or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11"
+            />
+          </div>
         </div>
+
+        {/* Tag Filter */}
+        {uniqueTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground mr-1">Filter by:</span>
+            {uniqueTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={cn(
+                  "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                  selectedTag === tag
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+            {selectedTag && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setSelectedTag(null)}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
