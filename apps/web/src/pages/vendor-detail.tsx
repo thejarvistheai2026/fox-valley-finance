@@ -58,16 +58,15 @@ export function VendorDetailPage() {
         setVendor(vendorData);
 
         // Fetch related data
-        const [estimatesData, receiptsData] = await Promise.all([
+        const [estimatesData, receiptsData, docsData] = await Promise.all([
           getEstimates(vendorData.id),
           getReceipts({ vendorId: vendorData.id }),
+          getDocuments(vendorData.id),
         ]);
 
         setEstimates(estimatesData);
         setReceipts(receiptsData);
-
-        // Documents would need a similar function - using empty array for now
-        setDocuments([]);
+        setDocuments(docsData);
       } catch (err) {
         console.error('Failed to fetch vendor:', err);
         setVendor(null);
@@ -100,27 +99,20 @@ export function VendorDetailPage() {
 
     setEstimateError(null);
     try {
-      console.log('Creating estimate with data:', data);
-
       // Create the estimate first
       const newEstimate = await createEstimate({
         ...data,
         vendor_id: vendor.id,
       });
 
-      console.log('Estimate created:', newEstimate);
-
       // If there's a file, upload it and create a document
       if (file) {
-        console.log('Uploading file:', file.name);
         const { path } = await uploadDocument(
           file,
           vendor.project_id,
           'estimates',
           newEstimate.id
         );
-
-        console.log('File uploaded to:', path);
 
         await createDocument({
           project_id: vendor.project_id,
@@ -133,8 +125,6 @@ export function VendorDetailPage() {
           file_size_bytes: file.size,
           tags: [],
         });
-
-        console.log('Document record created');
 
         // Refresh documents
         const docsData = await getDocuments(vendor.id);
@@ -159,8 +149,6 @@ export function VendorDetailPage() {
 
     setEstimateError(null);
     try {
-      console.log('Updating estimate:', estimateId, data);
-
       // Update the estimate
       await updateEstimate(estimateId, {
         ...data,
@@ -169,7 +157,6 @@ export function VendorDetailPage() {
 
       // If there's a file, upload it and create a document
       if (file) {
-        console.log('Uploading file:', file.name);
         const { path } = await uploadDocument(
           file,
           vendor.project_id,
