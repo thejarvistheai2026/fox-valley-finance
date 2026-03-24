@@ -37,7 +37,7 @@ const estimateSchema = z.object({
   subtotal: z.number().min(0, 'Amount must be 0 or greater'),
   hst_amount: z.number().min(0, 'Amount must be 0 or greater'),
   estimated_total: z.number().min(0, 'Amount must be 0 or greater'),
-  status: z.enum(['in-progress', 'revised', 'archived'] as const),
+  status: z.enum(['active', 'revised', 'declined'] as const),
   notes: z.string().optional(),
 });
 
@@ -77,7 +77,7 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
       subtotal: 0,
       hst_amount: 0,
       estimated_total: 0,
-      status: 'in-progress',
+      status: 'active',
       notes: '',
     },
   });
@@ -263,9 +263,9 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="revised">Revised</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
+                  <SelectItem value="declined">Declined</SelectItem>
                 </SelectContent>
               </Select>
             </div>

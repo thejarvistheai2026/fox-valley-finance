@@ -858,14 +858,14 @@ function ContractVendorLayout({
                           <td className="py-3 px-4 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Badge
-                                variant={estimate.status === 'in-progress' ? 'default' : 'secondary'}
+                                variant={estimate.status === 'active' ? 'default' : 'secondary'}
                                 className={
-                                  estimate.status === 'in-progress' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
+                                  estimate.status === 'active' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
                                   estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
-                                  'bg-gray-100 text-gray-800 hover:bg-gray-100'
+                                  'bg-red-100 text-red-800 hover:bg-red-100'
                                 }
                               >
-                                {estimate.status === 'in-progress' ? 'In Progress' : estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
+                                {estimate.status === 'active' ? 'Active' : estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
                               </Badge>
                             </div>
                           </td>
