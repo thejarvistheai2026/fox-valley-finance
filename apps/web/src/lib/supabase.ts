@@ -309,13 +309,22 @@ export async function uploadDocument(
   const fileName = `${Date.now()}.${fileExt}`;
   const storagePath = `${projectId}/${entityType}/${entityId}/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
+  console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+  console.log('Storage path:', storagePath);
+
+  const { error: uploadError, data: uploadData } = await supabase.storage
     .from('documents')
     .upload(storagePath, file, {
       upsert: false,
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    throw uploadError;
+  }
+
+  console.log('Upload successful:', uploadData);
+  console.log('Full path:', storagePath);
 
   const { data: { publicUrl } } = supabase.storage
     .from('documents')

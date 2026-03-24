@@ -107,28 +107,36 @@ export function VendorDetailPage() {
 
       // If there's a file, upload it and create a document
       if (file) {
-        const { path } = await uploadDocument(
-          file,
-          vendor.project_id,
-          'estimates',
-          newEstimate.id
-        );
+        console.log('File to upload:', file.name, file.size, file.type);
+        try {
+          const { path } = await uploadDocument(
+            file,
+            vendor.project_id,
+            'estimates',
+            newEstimate.id
+          );
+          console.log('File uploaded successfully to:', path);
 
-        await createDocument({
-          project_id: vendor.project_id,
-          vendor_id: vendor.id,
-          estimate_id: newEstimate.id,
-          display_name: file.name,
-          original_file_name: file.name,
-          storage_path: path,
-          file_type: file.type,
-          file_size_bytes: file.size,
-          tags: [],
-        });
+          await createDocument({
+            project_id: vendor.project_id,
+            vendor_id: vendor.id,
+            estimate_id: newEstimate.id,
+            display_name: file.name,
+            original_file_name: file.name,
+            storage_path: path,
+            file_type: file.type,
+            file_size_bytes: file.size,
+            tags: [],
+          });
+          console.log('Document record created');
 
-        // Refresh documents
-        const docsData = await getDocuments(vendor.id);
-        setDocuments(docsData);
+          // Refresh documents
+          const docsData = await getDocuments(vendor.id);
+          setDocuments(docsData);
+        } catch (uploadErr) {
+          console.error('Upload failed:', uploadErr);
+          alert('File upload failed: ' + (uploadErr instanceof Error ? uploadErr.message : 'Unknown error'));
+        }
       }
 
       // Refresh estimates list
