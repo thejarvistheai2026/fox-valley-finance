@@ -86,7 +86,7 @@ export function InboxPage() {
   const handleConfirmReceipt = async (receipt: ReceiptType, updates: Partial<ReceiptType>) => {
     setProcessingId(receipt.id);
     try {
-      await updateReceipt(receipt.id, { ...updates, status: 'confirmed' });
+      await updateReceipt(receipt.id, { ...updates, status: 'completed' });
       setInboxItems(prev => prev.filter(r => r.id !== receipt.id));
     } catch (err) {
       console.error('Failed to confirm receipt:', err);
@@ -97,7 +97,7 @@ export function InboxPage() {
   };
 
   const handleQuickConfirm = (receipt: ReceiptType) => {
-    handleConfirmReceipt(receipt, { status: 'confirmed' });
+    handleConfirmReceipt(receipt, { status: 'completed' });
   };
 
   const handleDismiss = (receiptId: string) => {
@@ -217,7 +217,7 @@ function InboxItemCard({ receipt, vendors, onConfirm, onQuickConfirm, onDismiss,
     onConfirm(receipt, {
       vendor_id: selectedVendor,
       tags: selectedTags,
-      status: 'confirmed',
+      status: 'completed',
     });
   };
 

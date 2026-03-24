@@ -163,7 +163,7 @@ export function VendorDetailPage() {
       const receiptData = {
         ...data,
         vendor_id: vendor.id,
-        status: 'confirmed' as const,
+        status: 'completed' as const,
       };
       console.log('Sending to createReceipt:', receiptData);
       const newReceipt = await createReceipt(receiptData);
@@ -858,14 +858,14 @@ function ContractVendorLayout({
                           <td className="py-3 px-4 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Badge
-                                variant={estimate.status === 'active' ? 'default' : 'secondary'}
+                                variant={estimate.status === 'in-progress' ? 'default' : 'secondary'}
                                 className={
-                                  estimate.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
+                                  estimate.status === 'in-progress' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
                                   estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
                                   'bg-gray-100 text-gray-800 hover:bg-gray-100'
                                 }
                               >
-                                {estimate.status}
+                                {estimate.status === 'in-progress' ? 'In Progress' : estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
                               </Badge>
                             </div>
                           </td>
@@ -966,8 +966,8 @@ function ContractVendorLayout({
                                             <Currency amount={receipt.tax_total} />
                                           </td>
                                           <td className="py-2 px-4 text-center">
-                                            <Badge variant="outline" className="text-xs">
-                                              {receipt.status || 'confirmed'}
+                                            <Badge variant="outline" className="text-xs capitalize">
+                                              {receipt.status || 'completed'}
                                             </Badge>
                                           </td>
                                           <td className="py-2 px-4 text-center">
@@ -1242,8 +1242,8 @@ function RetailVendorLayout({
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                     <td className="py-3 px-4 text-center">
-                      <Badge variant="outline">
-                        {receipt.status || 'confirmed'}
+                      <Badge variant="outline" className="capitalize">
+                        {receipt.status || 'completed'}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-center">
