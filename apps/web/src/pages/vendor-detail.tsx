@@ -941,21 +941,22 @@ function ContractVendorLayout({
                                   <table className="w-full text-sm">
                                     <thead>
                                       <tr className="border-b">
-                                        <th className="text-left py-2 px-2">ID</th>
-                                        <th className="text-left py-2 px-2">Vendor Ref</th>
-                                        <th className="text-left py-2 px-2">Date</th>
-                                        <th className="text-left py-2 px-2">Payment Type</th>
-                                        <th className="text-right py-2 px-2">Total</th>
-                                        <th className="text-right py-2 px-2">HST</th>
-                                        <th className="text-left py-2 px-2">Notes</th>
-                                        <th className="text-center py-2 px-2">Status</th>
-                                        <th className="text-center py-2 px-2 w-24">Actions</th>
+                                        <th className="text-left py-2 px-4 font-medium w-8"></th>
+                                        <th className="text-left py-2 px-4 font-medium">ID</th>
+                                        <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
+                                        <th className="text-left py-2 px-4 font-medium">Type</th>
+                                        <th className="text-left py-2 px-4 font-medium">Date</th>
+                                        <th className="text-right py-2 px-4 font-medium">Total</th>
+                                        <th className="text-right py-2 px-4 font-medium">HST</th>
+                                        <th className="text-center py-2 px-4 font-medium">Status</th>
+                                        <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {linkedReceipts.map((receipt) => (
                                         <tr key={receipt.id} className="border-b last:border-0">
-                                          <td className="py-2 px-2">
+                                          <td className="py-2 px-4"></td>
+                                          <td className="py-2 px-4">
                                             <Button
                                               variant="link"
                                               size="sm"
@@ -965,30 +966,27 @@ function ContractVendorLayout({
                                               {receipt.display_id}
                                             </Button>
                                           </td>
-                                          <td className="py-2 px-2 text-muted-foreground">{receipt.vendor_ref}</td>
-                                          <td className="py-2 px-2">{receipt.date}</td>
-                                          <td className="py-2 px-2">
+                                          <td className="py-2 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
+                                          <td className="py-2 px-4">
                                             {receipt.payment_type && (
                                               <Badge variant="outline" className="capitalize">
                                                 {receipt.payment_type}
                                               </Badge>
                                             )}
                                           </td>
-                                          <td className="py-2 px-2 text-right">
+                                          <td className="py-2 px-4 text-muted-foreground">{receipt.date}</td>
+                                          <td className="py-2 px-4 text-right">
                                             <Currency amount={receipt.total} />
                                           </td>
-                                          <td className="py-2 px-2 text-right">
+                                          <td className="py-2 px-4 text-right">
                                             <Currency amount={receipt.tax_total} />
                                           </td>
-                                          <td className="py-2 px-2 text-muted-foreground truncate max-w-[150px]">
-                                            {receipt.notes}
-                                          </td>
-                                          <td className="py-2 px-2 text-center">
+                                          <td className="py-2 px-4 text-center">
                                             <Badge variant="outline" className="text-xs">
                                               {receipt.status || 'confirmed'}
                                             </Badge>
                                           </td>
-                                          <td className="py-2 px-2 text-center">
+                                          <td className="py-2 px-4 text-center">
                                             <div className="flex items-center justify-center gap-1">
                                               <Button
                                                 variant="ghost"
