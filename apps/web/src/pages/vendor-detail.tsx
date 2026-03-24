@@ -916,23 +916,7 @@ function ContractVendorLayout({
                           <tr>
                             <td colSpan={10} className="bg-muted/30 p-4">
                               <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="font-medium">Linked Receipts</h4>
-                                  <ReceiptFormDialog
-                                    vendorId={vendor.id}
-                                    vendorType={vendor.type}
-                                    taxProvince={vendor.tax_province}
-                                    estimates={estimates}
-                                    preSelectedEstimateId={estimate.id}
-                                    onSubmit={(data) => onCreateReceipt({ ...data, estimate_id: estimate.id })}
-                                    trigger={
-                                      <Button variant="outline" size="sm">
-                                        <Plus className="h-4 w-4 mr-1" />
-                                        Link Receipt
-                                      </Button>
-                                    }
-                                  />
-                                </div>
+                                <h4 className="font-medium">Linked Receipts</h4>
                                 {linkedReceipts.length === 0 ? (
                                   <p className="text-sm text-muted-foreground">
                                     No receipts linked to this estimate yet.
@@ -1034,6 +1018,22 @@ function ContractVendorLayout({
                                     </tbody>
                                   </table>
                                 )}
+                                <div className="pt-2">
+                                  <ReceiptFormDialog
+                                    vendorId={vendor.id}
+                                    vendorType={vendor.type}
+                                    taxProvince={vendor.tax_province}
+                                    estimates={estimates}
+                                    preSelectedEstimateId={estimate.id}
+                                    onSubmit={(data) => onCreateReceipt({ ...data, estimate_id: estimate.id })}
+                                    trigger={
+                                      <Button size="sm">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Link Receipt to This Estimate
+                                      </Button>
+                                    }
+                                  />
+                                </div>
                               </div>
                             </td>
                           </tr>
