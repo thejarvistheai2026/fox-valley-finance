@@ -38,10 +38,6 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
         </Link>
       </div>
 
-      <div className="px-4">
-        <Separator />
-      </div>
-
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
