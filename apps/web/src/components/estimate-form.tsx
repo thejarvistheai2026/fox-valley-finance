@@ -27,7 +27,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DocumentUpload } from '@/components/document-upload';
 import { cn } from '@/lib/utils';
-import { FileText, CalendarIcon } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import type { Estimate, EstimateStatus } from '@/types';
 
 const estimateSchema = z.object({
@@ -48,13 +48,17 @@ interface EstimateFormDialogProps {
   estimate?: Estimate;
   onSubmit: (data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>, file?: File | null) => void;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: EstimateFormDialogProps) {
-  const [open, setOpen] = useState(false);
+export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open: controlledOpen, onOpenChange }: EstimateFormDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [dateOpen, setDateOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const calculateTotal = (subtotal: number, hst: number) => {
     return Number((subtotal + hst).toFixed(2));
   };
@@ -112,15 +116,12 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        {trigger || (
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Add Estimate
-          </Button>
-        )}
-      </DialogTrigger>
-      
+      {trigger && (
+        <DialogTrigger>
+          {trigger}
+        </DialogTrigger>
+      )}
+
       <DialogContent className="max-w-2xl p-8">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl">

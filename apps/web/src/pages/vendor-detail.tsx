@@ -30,7 +30,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -147,6 +147,59 @@ export function VendorDetailPage() {
     } catch (err) {
       console.error('Failed to create estimate:', err);
       setEstimateError(err instanceof Error ? err.message : 'Failed to create estimate');
+    }
+  };
+
+  const handleUpdateEstimate = async (
+    estimateId: string,
+    data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>,
+    file?: File | null
+  ) => {
+    if (!vendor) return;
+
+    setEstimateError(null);
+    try {
+      console.log('Updating estimate:', estimateId, data);
+
+      // Update the estimate
+      await updateEstimate(estimateId, {
+        ...data,
+        vendor_id: vendor.id,
+      });
+
+      // If there's a file, upload it and create a document
+      if (file) {
+        console.log('Uploading file:', file.name);
+        const { path } = await uploadDocument(
+          file,
+          vendor.project_id,
+          'estimates',
+          estimateId
+        );
+
+        await createDocument({
+          project_id: vendor.project_id,
+          vendor_id: vendor.id,
+          estimate_id: estimateId,
+          display_name: file.name.replace(/\\.[^/.]+$/, ''),
+          original_file_name: file.name,
+          storage_path: path,
+          file_type: file.type,
+          file_size_bytes: file.size,
+          tags: [],
+        });
+
+        // Refresh documents
+        const docsData = await getDocuments(vendor.id);
+        setDocuments(docsData);
+      }
+
+      // Refresh estimates list
+      const estimatesData = await getEstimates(vendor.id);
+      setEstimates(estimatesData);
+    } catch (err) {
+      console.error('Failed to update estimate:', err);
+      setEstimateError(err instanceof Error ? err.message : 'Failed to update estimate');
     }
   };
 
@@ -518,6 +571,7 @@ export function VendorDetailPage() {
           estimates={estimates}
           documents={documents}
           onCreateEstimate={handleCreateEstimate}
+          onUpdateEstimate={handleUpdateEstimate}
           onCreateReceipt={handleCreateReceipt}
           getLinkedReceipts={getLinkedReceipts}
           getUnlinkedReceipts={getUnlinkedReceipts}
@@ -759,6 +813,7 @@ interface ContractVendorLayoutProps {
   estimates: Estimate[];
   documents: Document[];
   onCreateEstimate: (data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>) => void;
+  onUpdateEstimate: (estimateId: string, data: Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>, file?: File | null) => void;
   onCreateReceipt: (data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>, file?: File | null) => void;
   getLinkedReceipts: (estimateId: string) => Receipt[];
   getUnlinkedReceipts: () => Receipt[];
@@ -773,6 +828,7 @@ function ContractVendorLayout({
   estimates,
   documents: _documents,
   onCreateEstimate,
+  onUpdateEstimate,
   onCreateReceipt,
   getLinkedReceipts,
   getUnlinkedReceipts,
@@ -782,6 +838,7 @@ function ContractVendorLayout({
   onUnlinkReceipt,
 }: ContractVendorLayoutProps) {
   const [expandedEstimate, setExpandedEstimate] = useState<string | null>(null);
+  const [editingEstimate, setEditingEstimate] = useState<Estimate | null>(null);
   const unlinkedReceipts = getUnlinkedReceipts();
 
   return (
@@ -890,8 +947,7 @@ function ContractVendorLayout({
                                 className="h-6 w-6 p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // TODO: Edit estimate
-                                  alert('Edit estimate coming soon');
+                                  setEditingEstimate(estimate);
                                 }}
                                 title="Edit estimate"
                               >
@@ -1047,6 +1103,22 @@ function ContractVendorLayout({
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Estimate Dialog */}
+      {editingEstimate && (
+        <EstimateFormDialog
+          vendorId={vendor.id}
+          estimate={editingEstimate}
+          onSubmit={(data, file) => {
+            onUpdateEstimate(editingEstimate.id, data, file);
+            setEditingEstimate(null);
+          }}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingEstimate(null);
+          }}
+        />
+      )}
 
       {/* Unlinked Receipts Section */}
       {unlinkedReceipts.length > 0 && (
