@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Test</title>
+</head>
+<body>
+    <h1>Supabase Storage Test</h1>
+    <p>Click the button to test if the bucket is accessible:</p>
+    <button onclick="testStorage()">Test Storage</button>
+    <div id="result"></div>
+
+    <script>
+        // Replace with your actual file path from the database
+        const testPath = '11111111-1111-1111-1111-111111111111/estimates/[ESTIMATE-ID]/[FILENAME].jpg';
+
+        function testStorage() {
+            const result = document.getElementById('result');
+
+            // Get the Supabase URL from your app
+            const supabaseUrl = 'https://nhngmcypqwfuvgzewrij.supabase.co';
+
+            // Try different URL formats
+            const formats = [
+                // Format 1: Standard public URL
+                `${supabaseUrl}/storage/v1/object/public/documents/${testPath}`,
+                // Format 2: Without /public
+                `${supabaseUrl}/storage/v1/object/documents/${testPath}`,
+                // Format 3: With /sign
+                `${supabaseUrl}/storage/v1/object/sign/documents/${testPath}`,
+            ];
+
+            result.innerHTML = '<h2>Testing URL formats:</h2>';
+
+            formats.forEach((url, i) => {
+                const img = new Image();
+                img.onload = () => {
+                    result.innerHTML += `<p style="color:green">✓ Format ${i+1} WORKS: ${url.substring(0, 60)}...</p>`;
+                };
+                img.onerror = () => {
+                    result.innerHTML += `<p style="color:red">✗ Format ${i+1} FAILED: ${url.substring(0, 60)}...</p>`;
+                };
+                img.src = url;
+            });
+        }
+    </script>
+</body>
+</html>
