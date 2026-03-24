@@ -14,22 +14,19 @@ import {
 } from 'lucide-react';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
-import type { DashboardSummary, Receipt as ReceiptType, Vendor } from '@/types';
+import type { DashboardSummary, Receipt as ReceiptType } from '@/types';
 import {
   getDashboardSummary,
-  getVendorSummaries,
   getReceipts,
   generateCSVReceipts,
   downloadCSV,
   deleteReceipt
 } from '@/lib/supabase';
-import { ReceiptFormDialog } from '@/components/receipt-form';
 import { cn } from '@/lib/utils';
 
 export function DashboardPage() {
   const { dateRange, setDateRange } = useDateRange('All time');
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [recentReceipts, setRecentReceipts] = useState<ReceiptType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,12 +42,9 @@ export function DashboardPage() {
           end: dateRange.end
         } : undefined;
         
-        // Fetch dashboard summary and vendor summaries
+        // Fetch dashboard summary
         const summaryData = await getDashboardSummary(dateRangeParam);
         console.log('Dashboard summary:', summaryData);
-
-        const vendorsData = await getVendorSummaries(dateRangeParam);
-        console.log('Vendor summaries:', vendorsData);
 
         // Fetch recent receipts (limit to 10)
         const receiptsData = await getReceipts(dateRangeParam ? { dateRange: dateRangeParam } : undefined);
@@ -58,7 +52,6 @@ export function DashboardPage() {
 
         // RPC returns an array, get the first item
         setSummary(Array.isArray(summaryData) ? summaryData[0] : summaryData);
-        setVendors(vendorsData || []);
         setRecentReceipts((receiptsData || []).slice(0, 10));
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
