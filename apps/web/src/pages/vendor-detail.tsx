@@ -642,6 +642,8 @@ export function VendorDetailPage() {
                       className="flex-1"
                       onClick={() => {
                       const publicUrl = getDocumentPublicUrl(doc.storage_path);
+                      console.log('Opening public URL:', publicUrl);
+                      console.log('Storage path:', doc.storage_path);
                       window.open(publicUrl, '_blank');
                     }}
                     >
