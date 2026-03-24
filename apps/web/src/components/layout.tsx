@@ -5,7 +5,7 @@ import {
   Inbox,
   Search,
   Menu,
-  Receipt,
+  Home,
   LogOut,
   User
 } from 'lucide-react';
@@ -32,7 +32,7 @@ function SidebarContent({ inboxCount }: { inboxCount: number }) {
       <div className="p-6">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
           <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-2.5 rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
-            <Receipt className="h-5 w-5" />
+            <Home className="h-5 w-5" />
           </div>
           <div>
             <span className="font-semibold text-lg tracking-tight">Fox Valley</span>

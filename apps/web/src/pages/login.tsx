@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
-import { Building2, Chrome } from 'lucide-react';
+import { Home, Chrome } from 'lucide-react';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -51,7 +51,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
+            <Home className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">Fox Valley</h1>
           <p className="text-muted-foreground">
