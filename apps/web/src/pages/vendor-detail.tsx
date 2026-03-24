@@ -30,7 +30,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, createSignedDocumentUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -640,15 +640,9 @@ export function VendorDetailPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={async () => {
-                      try {
-                        const signedUrl = await createSignedDocumentUrl(doc.storage_path);
-                        console.log('Opening signed URL:', signedUrl);
-                        window.open(signedUrl, '_blank');
-                      } catch (err) {
-                        console.error('Failed to create signed URL:', err);
-                        alert('Failed to view document: ' + (err instanceof Error ? err.message : 'Unknown error'));
-                      }
+                      onClick={() => {
+                      const publicUrl = getDocumentPublicUrl(doc.storage_path);
+                      window.open(publicUrl, '_blank');
                     }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
@@ -760,14 +754,9 @@ export function VendorDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={async () => {
-                        try {
-                          const signedUrl = await createSignedDocumentUrl(receiptDocument.storage_path);
-                          window.open(signedUrl, '_blank');
-                        } catch (err) {
-                          console.error('Failed to create signed URL:', err);
-                          alert('Failed to view document: ' + (err instanceof Error ? err.message : 'Unknown error'));
-                        }
+                      onClick={() => {
+                        const publicUrl = getDocumentPublicUrl(receiptDocument.storage_path);
+                        window.open(publicUrl, '_blank');
                       }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
