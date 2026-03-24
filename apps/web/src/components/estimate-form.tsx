@@ -92,12 +92,19 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
   }, [subtotal, hstAmount, form]);
   
   const handleSubmit = (data: EstimateFormData) => {
-    onSubmit({
-      ...data,
+    // Only pass valid Estimate fields (exclude form-only fields like subtotal/hst_amount)
+    const estimateData = {
+      title: data.title,
+      vendor_ref: data.vendor_ref,
+      date: format(data.date, 'yyyy-MM-dd'),
+      estimated_total: data.estimated_total,
+      status: data.status,
+      notes: data.notes,
       vendor_id: vendorId,
       tags: [],
-      date: format(data.date, 'yyyy-MM-dd'),
-    } as Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>, selectedFile);
+    } as Omit<Estimate, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at'>;
+
+    onSubmit(estimateData, selectedFile);
     setOpen(false);
     form.reset();
     setSelectedFile(null);
