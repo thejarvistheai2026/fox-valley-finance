@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  DollarSign, 
-  Building2, 
-  Receipt, 
+import {
+  DollarSign,
+  Building2,
+  Receipt,
   TrendingUp,
   TrendingDown,
-  Download
+  Download,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
@@ -18,8 +20,10 @@ import {
   getVendorSummaries,
   getReceipts,
   generateCSVReceipts,
-  downloadCSV
+  downloadCSV,
+  deleteReceipt
 } from '@/lib/supabase';
+import { ReceiptFormDialog } from '@/components/receipt-form';
 import { cn } from '@/lib/utils';
 
 export function DashboardPage() {
@@ -161,83 +165,7 @@ export function DashboardPage() {
           isCurrency
         />
       </div>
-      
-      {/* Vendor Summary Table */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold">Vendor Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Vendor</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Estimated</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Paid</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Outstanding</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">HST Paid</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <tr key={i}>
-                      <td className="py-4 px-4"><Skeleton className="h-4 w-32" /></td>
-                      <td className="py-4 px-4"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                      <td className="py-4 px-4"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                      <td className="py-4 px-4"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                      <td className="py-4 px-4"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                    </tr>
-                  ))
-                ) : (
-                  vendors.map((vendor) => (
-                    <tr key={vendor.id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Building2 className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{vendor.name}</div>
-                            <div className="text-xs text-muted-foreground">{vendor.display_id}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        {vendor.type === 'contract' ? (
-                          <span className="font-medium"><Currency amount={vendor.estimated_total || 0} /></span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <span className="font-medium"><Currency amount={vendor.paid_total || 0} /></span>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        {vendor.type === 'contract' ? (
-                          <span className={cn(
-                            "font-medium",
-                            (vendor.outstanding || 0) > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
-                          )}>
-                            <Currency amount={vendor.outstanding || 0} />
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <span className="text-sm"><Currency amount={vendor.tax_total || 0} /></span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-      
+
       {/* Recent Activity */}
       <Card className="shadow-sm">
         <CardHeader className="pb-4">
@@ -268,7 +196,7 @@ export function DashboardPage() {
               recentReceipts.map((receipt) => (
                 <div
                   key={receipt.id}
-                  className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer group"
+                  className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
                 >
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
                     <Receipt className="h-5 w-5 text-primary" />
@@ -280,13 +208,40 @@ export function DashboardPage() {
                       <span className="ml-2">{receipt.date}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold">
-                      <Currency amount={receipt.total} />
+                  <div className="flex items-center gap-2">
+                    <div className="text-right mr-2">
+                      <div className="font-semibold">
+                        <Currency amount={receipt.total} />
+                      </div>
+                      <div className="text-xs text-muted-foreground font-medium">
+                        {receipt.display_id}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {receipt.display_id}
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {/* Edit handler */}}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                      onClick={async () => {
+                        if (!confirm('Delete this receipt?')) return;
+                        try {
+                          await deleteReceipt(receipt.id);
+                          setRecentReceipts(prev => prev.filter(r => r.id !== receipt.id));
+                        } catch (err) {
+                          console.error('Failed to delete receipt:', err);
+                          alert('Failed to delete receipt');
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))
