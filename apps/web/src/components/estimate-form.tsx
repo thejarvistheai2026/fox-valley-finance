@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -34,6 +34,8 @@ const estimateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   vendor_ref: z.string().min(1, 'Vendor reference is required'),
   date: z.date(),
+  subtotal: z.number().min(0, 'Amount must be positive'),
+  hst_amount: z.number().min(0, 'Amount must be positive'),
   estimated_total: z.number().min(0, 'Amount must be positive'),
   status: z.enum(['active', 'revised', 'declined'] as const),
   notes: z.string().optional(),
@@ -53,12 +55,18 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
   const [dateOpen, setDateOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
+  const calculateTotal = (subtotal: number, hst: number) => {
+    return Number((subtotal + hst).toFixed(2));
+  };
+
   const form = useForm<EstimateFormData>({
     resolver: zodResolver(estimateSchema),
     defaultValues: estimate ? {
       title: estimate.title,
       vendor_ref: estimate.vendor_ref || '',
       date: new Date(estimate.date),
+      subtotal: estimate.estimated_total || 0, // Legacy: use total as subtotal
+      hst_amount: 0,
       estimated_total: estimate.estimated_total,
       status: estimate.status,
       notes: estimate.notes || '',
@@ -66,11 +74,22 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
       title: '',
       vendor_ref: '',
       date: new Date(),
+      subtotal: 0,
+      hst_amount: 0,
       estimated_total: 0,
       status: 'active',
       notes: '',
     },
   });
+
+  // Watch subtotal and HST to auto-calculate total
+  const subtotal = form.watch('subtotal');
+  const hstAmount = form.watch('hst_amount');
+
+  useEffect(() => {
+    const total = calculateTotal(subtotal || 0, hstAmount || 0);
+    form.setValue('estimated_total', total, { shouldValidate: false });
+  }, [subtotal, hstAmount, form]);
   
   const handleSubmit = (data: EstimateFormData) => {
     onSubmit({
@@ -173,23 +192,54 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
           {/* Section: Financial & Status */}
           <div className="space-y-4 pt-4 border-t">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Financial & Status</h3>
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-3 gap-5">
 
             <div className="space-y-2">
-              <Label htmlFor="estimated_total">Estimated Total (CAD) *</Label>
+              <Label htmlFor="subtotal">Subtotal (CAD) *</Label>
+              <Input
+                id="subtotal"
+                type="number"
+                step="0.01"
+                {...form.register('subtotal', { valueAsNumber: true })}
+                placeholder="0.00"
+                className="h-11"
+              />
+              {form.formState.errors.subtotal && (
+                <p className="text-sm text-destructive mt-1">{form.formState.errors.subtotal.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="hst_amount">HST / Tax (CAD) *</Label>
+              <Input
+                id="hst_amount"
+                type="number"
+                step="0.01"
+                {...form.register('hst_amount', { valueAsNumber: true })}
+                placeholder="0.00"
+                className="h-11"
+              />
+              {form.formState.errors.hst_amount && (
+                <p className="text-sm text-destructive mt-1">{form.formState.errors.hst_amount.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="estimated_total">Estimated Total (CAD)</Label>
               <Input
                 id="estimated_total"
                 type="number"
                 step="0.01"
                 {...form.register('estimated_total', { valueAsNumber: true })}
                 placeholder="0.00"
-                className="h-11"
+                className="h-11 bg-muted"
+                readOnly
               />
-              {form.formState.errors.estimated_total && (
-                <p className="text-sm text-destructive mt-1">{form.formState.errors.estimated_total.message}</p>
-              )}
+              <p className="text-xs text-muted-foreground mt-1">Auto-calculated from subtotal + tax</p>
+            </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-5 mt-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
