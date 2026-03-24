@@ -344,10 +344,9 @@ export async function deleteDocument(id: string) {
 
 // Get public URL for a document
 export function getDocumentPublicUrl(storagePath: string): string {
-  const { data: { publicUrl } } = supabase.storage
-    .from('documents')
-    .getPublicUrl(storagePath);
-  return publicUrl;
+  // Manually construct the public URL
+  const supabaseUrl = 'https://nhngmcypqwfuvgzewrij.supabase.co';
+  return `${supabaseUrl}/storage/v1/object/public/documents/${storagePath}`;
 }
 
 // Create signed URL for secure document access (expires in 1 hour)
