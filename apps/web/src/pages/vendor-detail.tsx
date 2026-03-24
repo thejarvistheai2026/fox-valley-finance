@@ -17,6 +17,7 @@ import {
   Trash2,
   Link2Off,
   Eye,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -653,6 +654,16 @@ export function VendorDetailPage() {
                         No file attached
                       </span>
                     )}
+                    {docUrl && (
+                      <a
+                        href={docUrl}
+                        download={doc.display_name}
+                        className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -764,6 +775,14 @@ export function VendorDetailPage() {
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
+                    </a>
+                    <a
+                      href={getDocumentPublicUrl(receiptDocument.storage_path)}
+                      download={receiptDocument.display_name}
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
                     </a>
                   </div>
                 </div>
