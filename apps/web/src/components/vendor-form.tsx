@@ -30,6 +30,7 @@ const vendorSchema = z.object({
   type: z.enum(['contract', 'retail'] as const),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
+  website: z.string().url().optional().or(z.literal('')),
   address: z.string().optional(),
   contact_name: z.string().optional(),
   notes: z.string().optional(),
@@ -55,6 +56,7 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
       type: vendor.type,
       email: vendor.email || '',
       phone: vendor.phone || '',
+      website: vendor.website || '',
       address: vendor.address || '',
       contact_name: vendor.contact_name || '',
       notes: vendor.notes || '',
@@ -65,6 +67,7 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
       type: 'contract',
       email: '',
       phone: '',
+      website: '',
       address: '',
       contact_name: '',
       notes: '',
@@ -180,7 +183,17 @@ export function VendorFormDialog({ vendor, onSubmit, trigger }: VendorFormDialog
                 placeholder="(555) 123-4567"
               />
             </div>
-            
+
+            <div>
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="url"
+                {...form.register('website')}
+                placeholder="https://example.com"
+              />
+            </div>
+
             <div className="col-span-2">
               <Label htmlFor="address">Address</Label>
               <Textarea

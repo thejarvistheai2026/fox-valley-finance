@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   Phone,
   Mail,
+  Globe,
   MapPin,
   Archive,
   Edit
@@ -138,6 +139,20 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
               <div className="flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
                 <span className="truncate max-w-[200px]">{vendor.email}</span>
+              </div>
+            )}
+            {vendor.website && (
+              <div className="flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5" />
+                <a
+                  href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate max-w-[200px] hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {vendor.website.replace(/^https?:\/\//, '')}
+                </a>
               </div>
             )}
             {vendor.address && (

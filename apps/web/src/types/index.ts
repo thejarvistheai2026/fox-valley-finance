@@ -12,6 +12,7 @@ export interface Vendor {
   type: VendorType;
   email?: string;
   phone?: string;
+  website?: string;
   address?: string;
   contact_name?: string;
   notes?: string;
