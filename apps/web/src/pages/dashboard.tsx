@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DollarSign,
-  Building2,
   Receipt,
   TrendingUp,
   TrendingDown,
@@ -142,36 +141,6 @@ export function DashboardPage() {
         />
       </div>
       
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard
-          label="Active Vendors"
-          value={summary?.vendor_count || 0}
-          icon={Building2}
-          loading={loading}
-        />
-        <StatCard
-          label="Receipts"
-          value={summary?.receipt_count || 0}
-          icon={Receipt}
-          loading={loading}
-        />
-        <StatCard
-          label="GST (Federal)"
-          value={summary?.total_gst || 0}
-          icon={Receipt}
-          loading={loading}
-          isCurrency
-        />
-        <StatCard
-          label="Provincial Tax"
-          value={summary?.total_pst || 0}
-          icon={Receipt}
-          loading={loading}
-          isCurrency
-        />
-      </div>
-
       {/* Two Column Layout: Recent Activity & Documents */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
@@ -400,30 +369,3 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
   );
 }
 
-interface StatCardProps {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  loading: boolean;
-  isCurrency?: boolean;
-}
-
-function StatCard({ label, value, icon: Icon, loading, isCurrency }: StatCardProps) {
-  return (
-    <div className="flex items-center gap-4 p-5 border rounded-xl bg-card/50 hover:bg-card transition-colors shadow-sm">
-      <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
-        <Icon className="h-5 w-5 text-muted-foreground" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        {loading ? (
-          <Skeleton className="h-6 w-20 mt-1" />
-        ) : (
-          <p className="text-xl font-semibold tracking-tight mt-0.5">
-            {isCurrency ? <Currency amount={value} /> : value.toLocaleString()}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
