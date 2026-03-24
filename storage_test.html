@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage URL Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .test { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .fail { background: #f8d7da; border-color: #f5c6cb; }
+        img { max-width: 200px; max-height: 200px; border: 1px solid #ddd; }
+        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Supabase Storage URL Test</h1>
+    <p>Testing different URL formats for the same file:</p>
+
+    <div id="tests"></div>
+
+    <script>
+        const supabaseUrl = 'https://nhngmcypqwfuvgzewrij.supabase.co';
+        const filePath = '11111111-1111-1111-1111-111111111111/estimates/72dee739-4d57-45d4-93fc-22fceb25cae1/1774391718116.jpg';
+
+        const tests = [
+            {
+                name: 'Format 1: /object/public/documents/',
+                url: `${supabaseUrl}/storage/v1/object/public/documents/${filePath}`
+            },
+            {
+                name: 'Format 2: /object/documents/ (no public)',
+                url: `${supabaseUrl}/storage/v1/object/documents/${filePath}`
+            },
+            {
+                name: 'Format 3: /object/authenticated/documents/',
+                url: `${supabaseUrl}/storage/v1/object/authenticated/documents/${filePath}`
+            },
+            {
+                name: 'Format 4: /render/image/public/documents/',
+                url: `${supabaseUrl}/storage/v1/render/image/public/documents/${filePath}`
+            },
+            {
+                name: 'Format 5: /render/image/documents/',
+                url: `${supabaseUrl}/storage/v1/render/image/documents/${filePath}`
+            }
+        ];
+
+        const container = document.getElementById('tests');
+
+        tests.forEach((test, i) => {
+            const div = document.createElement('div');
+            div.className = 'test';
+            div.innerHTML = `
+                <h3>${test.name}</h3>
+                <code>${test.url}</code>
+                <div class="result">
+                    <img src="${test.url}" alt="Test ${i+1}" onload="this.parentElement.className='success'; document.getElementById('status-${i}').textContent='✓ SUCCESS'" onerror="this.parentElement.className='fail'; document.getElementById('status-${i}').textContent='✗ FAILED (Error)'">
+                    <p id="status-${i}">Loading...</p>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    </script>
+</body>
+</html>
