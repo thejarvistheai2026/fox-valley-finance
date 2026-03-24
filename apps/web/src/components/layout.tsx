@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { getReceipts } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';

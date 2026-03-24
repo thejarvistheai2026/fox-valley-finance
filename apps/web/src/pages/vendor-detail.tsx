@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Trash2,
   Link2Off,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -758,7 +759,7 @@ function ContractVendorLayout({
               <table className="w-full">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="text-left py-2 px-4 font-medium"></th>
+                    <th className="text-left py-2 px-4 font-medium w-8"></th>
                     <th className="text-left py-2 px-4 font-medium">ID</th>
                     <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
                     <th className="text-left py-2 px-4 font-medium">Title</th>
@@ -767,6 +768,7 @@ function ContractVendorLayout({
                     <th className="text-right py-2 px-4 font-medium">Paid</th>
                     <th className="text-right py-2 px-4 font-medium">Outstanding</th>
                     <th className="text-center py-2 px-4 font-medium">Status</th>
+                    <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -802,7 +804,7 @@ function ContractVendorLayout({
                             <Currency amount={estimate.outstanding || 0} />
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-1">
                               <Badge
                                 variant={estimate.status === 'active' ? 'default' : 'secondary'}
                                 className={
@@ -813,6 +815,36 @@ function ContractVendorLayout({
                               >
                                 {estimate.status}
                               </Badge>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // View estimate - expand row
+                                  setExpandedEstimate(estimate.id);
+                                }}
+                                title="View estimate"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // TODO: Edit estimate
+                                  alert('Edit estimate coming soon');
+                                }}
+                                title="Edit estimate"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -830,7 +862,7 @@ function ContractVendorLayout({
                         </tr>
                         {isExpanded && (
                           <tr>
-                            <td colSpan={9} className="bg-muted/30 p-4">
+                            <td colSpan={10} className="bg-muted/30 p-4">
                               <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                   <h4 className="font-medium">Linked Receipts</h4>
@@ -864,7 +896,8 @@ function ContractVendorLayout({
                                         <th className="text-right py-2 px-2">Total</th>
                                         <th className="text-right py-2 px-2">HST</th>
                                         <th className="text-left py-2 px-2">Notes</th>
-                                        <th className="text-center py-2 px-2">Actions</th>
+                                        <th className="text-center py-2 px-2">Status</th>
+                                        <th className="text-center py-2 px-2 w-24">Actions</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -899,7 +932,33 @@ function ContractVendorLayout({
                                             {receipt.notes}
                                           </td>
                                           <td className="py-2 px-2 text-center">
+                                            <Badge variant="outline" className="text-xs">
+                                              {receipt.status || 'confirmed'}
+                                            </Badge>
+                                          </td>
+                                          <td className="py-2 px-2 text-center">
                                             <div className="flex items-center justify-center gap-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 w-6 p-0"
+                                                onClick={() => onViewReceipt(receipt)}
+                                                title="View receipt"
+                                              >
+                                                <Eye className="h-3 w-3" />
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 w-6 p-0"
+                                                onClick={() => {
+                                                  // TODO: Edit receipt
+                                                  onViewReceipt(receipt);
+                                                }}
+                                                title="Edit receipt"
+                                              >
+                                                <Edit className="h-3 w-3" />
+                                              </Button>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -957,7 +1016,8 @@ function ContractVendorLayout({
                     <th className="text-right py-2 px-4 font-medium">Total</th>
                     <th className="text-right py-2 px-4 font-medium">HST</th>
                     <th className="text-left py-2 px-4 font-medium">Notes</th>
-                    <th className="text-center py-2 px-4 font-medium">Actions</th>
+                    <th className="text-center py-2 px-4 font-medium">Status</th>
+                    <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -990,15 +1050,43 @@ function ContractVendorLayout({
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                       <td className="py-3 px-4 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                          onClick={() => onDeleteReceipt(receipt.id)}
-                          title="Delete receipt"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <Badge variant="outline">
+                          {receipt.status || 'unlinked'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => onViewReceipt(receipt)}
+                            title="View receipt"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              // TODO: Edit receipt
+                              onViewReceipt(receipt);
+                            }}
+                            title="Edit receipt"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                            onClick={() => onDeleteReceipt(receipt.id)}
+                            title="Delete receipt"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1068,7 +1156,8 @@ function RetailVendorLayout({
                   <th className="text-right py-2 px-4 font-medium">HST</th>
                   <th className="text-left py-2 px-4 font-medium">Tags</th>
                   <th className="text-left py-2 px-4 font-medium">Notes</th>
-                  <th className="text-center py-2 px-4 font-medium">Actions</th>
+                  <th className="text-center py-2 px-4 font-medium">Status</th>
+                  <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1103,15 +1192,43 @@ function RetailVendorLayout({
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                     <td className="py-3 px-4 text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => onDeleteReceipt(receipt.id)}
-                        title="Delete receipt"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <Badge variant="outline">
+                        {receipt.status || 'confirmed'}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => onViewReceipt(receipt)}
+                          title="View receipt"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            // TODO: Edit receipt
+                            onViewReceipt(receipt);
+                          }}
+                          title="Edit receipt"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          onClick={() => onDeleteReceipt(receipt.id)}
+                          title="Delete receipt"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

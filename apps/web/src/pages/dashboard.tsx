@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +11,8 @@ import {
   TrendingDown,
   Download,
   Edit,
-  Trash2
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
@@ -25,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { dateRange, setDateRange } = useDateRange('All time');
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentReceipts, setRecentReceipts] = useState<ReceiptType[]>([]);
@@ -213,15 +216,25 @@ export function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => {/* Edit handler */}}
+                      className="h-8 w-8"
+                      onClick={() => navigate(`/receipts/${receipt.id}`)}
+                      title="View receipt"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate(`/receipts/${receipt.id}/edit`)}
+                      title="Edit receipt"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
                       onClick={async () => {
                         if (!confirm('Delete this receipt?')) return;
                         try {
@@ -232,6 +245,7 @@ export function DashboardPage() {
                           alert('Failed to delete receipt');
                         }
                       }}
+                      title="Delete receipt"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
