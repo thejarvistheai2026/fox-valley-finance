@@ -633,8 +633,14 @@ export function VendorDetailPage() {
                       size="sm"
                       className="flex-1"
                       onClick={async () => {
-                      const signedUrl = await createSignedDocumentUrl(doc.storage_path);
-                      window.open(signedUrl, '_blank');
+                      try {
+                        const signedUrl = await createSignedDocumentUrl(doc.storage_path);
+                        console.log('Opening signed URL:', signedUrl);
+                        window.open(signedUrl, '_blank');
+                      } catch (err) {
+                        console.error('Failed to create signed URL:', err);
+                        alert('Failed to view document: ' + (err instanceof Error ? err.message : 'Unknown error'));
+                      }
                     }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
@@ -747,8 +753,13 @@ export function VendorDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={async () => {
-                        const signedUrl = await createSignedDocumentUrl(receiptDocument.storage_path);
-                        window.open(signedUrl, '_blank');
+                        try {
+                          const signedUrl = await createSignedDocumentUrl(receiptDocument.storage_path);
+                          window.open(signedUrl, '_blank');
+                        } catch (err) {
+                          console.error('Failed to create signed URL:', err);
+                          alert('Failed to view document: ' + (err instanceof Error ? err.message : 'Unknown error'));
+                        }
                       }}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
