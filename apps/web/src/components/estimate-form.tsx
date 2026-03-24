@@ -34,9 +34,9 @@ const estimateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   vendor_ref: z.string().min(1, 'Vendor reference is required'),
   date: z.date(),
-  subtotal: z.number().min(0, 'Amount must be positive'),
-  hst_amount: z.number().min(0, 'Amount must be positive'),
-  estimated_total: z.number().min(0, 'Amount must be positive'),
+  subtotal: z.number().min(0, 'Amount must be 0 or greater'),
+  hst_amount: z.number().min(0, 'Amount must be 0 or greater'),
+  estimated_total: z.number().min(0, 'Amount must be 0 or greater'),
   status: z.enum(['in-progress', 'revised', 'archived'] as const),
   notes: z.string().optional(),
 });
@@ -207,7 +207,9 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                 id="subtotal"
                 type="number"
                 step="0.01"
-                {...form.register('subtotal', { valueAsNumber: true })}
+                {...form.register('subtotal', {
+                  setValueAs: (v) => (v === '' || v === undefined ? 0 : parseFloat(v))
+                })}
                 placeholder="0.00"
                 className="h-11"
               />
@@ -217,12 +219,14 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hst_amount">HST / Tax (CAD) *</Label>
+              <Label htmlFor="hst_amount">HST / Tax (CAD) <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Input
                 id="hst_amount"
                 type="number"
                 step="0.01"
-                {...form.register('hst_amount', { valueAsNumber: true })}
+                {...form.register('hst_amount', {
+                  setValueAs: (v) => (v === '' || v === undefined ? 0 : parseFloat(v))
+                })}
                 placeholder="0.00"
                 className="h-11"
               />
@@ -237,7 +241,9 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger }: Es
                 id="estimated_total"
                 type="number"
                 step="0.01"
-                {...form.register('estimated_total', { valueAsNumber: true })}
+                {...form.register('estimated_total', {
+                  setValueAs: (v) => (v === '' || v === undefined ? 0 : parseFloat(v))
+                })}
                 placeholder="0.00"
                 className="h-11 bg-muted"
                 readOnly
