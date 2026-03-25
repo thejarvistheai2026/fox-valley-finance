@@ -153,7 +153,7 @@ export function ReceiptFormDialog({
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-8">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-8">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl">
             {receipt ? 'Edit Receipt' : 'Add New Receipt'}
