@@ -9,12 +9,19 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
-  Edit,
   Trash2,
   Eye,
   FileText,
-  ExternalLink
+  ArrowRight
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
 import type { DashboardSummary, Receipt as ReceiptType, Document } from '@/types';
@@ -24,8 +31,8 @@ import {
   getAllDocuments,
   generateCSVReceipts,
   downloadCSV,
-  deleteReceipt,
-  getDocumentPublicUrl
+  getDocumentViewUrl,
+  deleteDocument
 } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +44,8 @@ export function DashboardPage() {
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   
   useEffect(() => {
     async function fetchData() {
@@ -79,6 +88,50 @@ export function DashboardPage() {
   const handleExport = () => {
     const csv = generateCSVReceipts(recentReceipts);
     downloadCSV(csv, `receipts-${dateRange.label.replace(/\s+/g, '-').toLowerCase()}.csv`);
+  };
+
+  const handleViewDocument = async (storagePath: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      window.open(signedUrl, '_blank');
+    } catch (err) {
+      console.error('Failed to get document URL:', err);
+      alert('Failed to open document');
+    }
+  };
+
+  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document');
+    }
+  };
+
+  const handleDeleteDocument = (id: string) => {
+    setDocumentToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    try {
+      await deleteDocument(documentToDelete);
+      setRecentDocuments(prev => prev.filter(d => d.id !== documentToDelete));
+    } catch (err) {
+      console.error('Failed to delete document:', err);
+      alert('Failed to delete document');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDocumentToDelete(null);
+    }
   };
   
   return (
@@ -198,37 +251,10 @@ export function DashboardPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => navigate(`/receipts/${receipt.id}`)}
-                        title="View receipt"
+                        onClick={() => navigate(`/vendors/${receipt.vendor?.display_id}`)}
+                        title="Go to vendor"
                       >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => navigate(`/receipts/${receipt.id}/edit`)}
-                        title="Edit receipt"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={async () => {
-                          if (!confirm('Delete this receipt?')) return;
-                          try {
-                            await deleteReceipt(receipt.id);
-                            setRecentReceipts(prev => prev.filter(r => r.id !== receipt.id));
-                          } catch (err) {
-                            console.error('Failed to delete receipt:', err);
-                            alert('Failed to delete receipt');
-                          }
-                        }}
-                        title="Delete receipt"
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -286,15 +312,35 @@ export function DashboardPage() {
                         {doc.vendor?.name}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => window.open(getDocumentPublicUrl(doc.storage_path), '_blank')}
-                      title="View document"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleViewDocument(doc.storage_path)}
+                        title="View document"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
+                        title="Download document"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        title="Delete document"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               )}
@@ -302,6 +348,26 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteDocument}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
