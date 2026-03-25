@@ -111,6 +111,19 @@ export interface DashboardSummary {
   receipt_count: number;
 }
 
+export interface Todo {
+  id: string;
+  project_id: string;
+  display_id: string;
+  title: string;
+  description?: string;
+  due_date?: string; // ISO date string, undefined for general to-dos
+  is_completed: boolean;
+  is_milestone: boolean;
+  completed_at?: string;
+  created_at: string;
+}
+
 export interface DateRange {
   label: string;
   days: number | null;

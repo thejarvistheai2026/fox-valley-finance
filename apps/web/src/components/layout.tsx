@@ -9,7 +9,8 @@ import {
   LogOut,
   User,
   FileText,
-  Download
+  Download,
+  CheckCircle2
 } from 'lucide-react';
 import { getReceipts, exportAllDocuments } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/vendors', label: 'Vendors', icon: Building2 },
+  { path: '/todos', label: 'To-dos & Milestones', icon: CheckCircle2 },
   { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/inbox', label: 'Inbox', icon: Inbox },
   { path: '/search', label: 'Search', icon: Search },
