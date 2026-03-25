@@ -50,7 +50,7 @@ interface ReceiptStatusBadgeProps {
 
 export function ReceiptStatusBadge({ status, className }: ReceiptStatusBadgeProps) {
   const variants: Record<ReceiptStatus, { className: string; label: string }> = {
-    'completed': { className: 'bg-green-100 text-green-800 hover:bg-green-100', label: 'Completed' },
+    'confirmed': { className: 'bg-green-100 text-green-800 hover:bg-green-100', label: 'Confirmed' },
     'inbox': { className: 'bg-amber-100 text-amber-800 hover:bg-amber-100', label: 'Inbox' },
   };
 

@@ -1,6 +1,6 @@
 export type VendorType = 'contract' | 'retail';
 export type EstimateStatus = 'active' | 'revised' | 'declined';
-export type ReceiptStatus = 'inbox' | 'completed';
+export type ReceiptStatus = 'inbox' | 'confirmed';
 export type PaymentType = 'deposit' | 'progress' | 'final' | 'additional';
 export type TaxProvince = 'ON' | 'QC';
 

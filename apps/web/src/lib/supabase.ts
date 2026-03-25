@@ -226,7 +226,7 @@ export async function updateReceipt(id: string, updates: Partial<Receipt>) {
 }
 
 export async function archiveReceipt(id: string) {
-  return updateReceipt(id, { status: 'completed' as const });
+  return updateReceipt(id, { status: 'confirmed' as const });
 }
 
 export async function deleteReceipt(id: string) {

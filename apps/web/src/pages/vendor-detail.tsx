@@ -215,7 +215,7 @@ export function VendorDetailPage() {
       const receiptData = {
         ...data,
         vendor_id: vendor.id,
-        status: 'completed' as const,
+        status: 'confirmed' as const,
       };
       console.log('Sending to createReceipt:', receiptData);
       const newReceipt = await createReceipt(receiptData);
@@ -1098,7 +1098,7 @@ function ContractVendorLayout({
                                           </td>
                                           <td className="py-2 px-4 text-center">
                                             <Badge variant="outline" className="text-xs capitalize">
-                                              {receipt.status || 'completed'}
+                                              {receipt.status || 'confirmed'}
                                             </Badge>
                                           </td>
                                           <td className="py-2 px-4 text-center">
@@ -1390,7 +1390,7 @@ function RetailVendorLayout({
                     <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                     <td className="py-3 px-4 text-center">
                       <Badge variant="outline" className="capitalize">
-                        {receipt.status || 'completed'}
+                        {receipt.status || 'confirmed'}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-center">
