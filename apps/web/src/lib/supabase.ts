@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import JSZip from 'jszip';
-import type { Vendor, Estimate, Receipt, Document } from '@/types';
+import type { Vendor, Estimate, Receipt, Document, Todo } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'anon-key';
@@ -482,9 +482,72 @@ export async function searchAll(query: string) {
 export async function getAllTags() {
   const { data, error } = await supabase
     .rpc('get_all_tags');
-  
+
   if (error) throw error;
   return data as string[];
+}
+
+// Todos API
+export async function getTodos() {
+  const { data, error } = await supabase
+    .from('todos')
+    .select('*')
+    .eq('project_id', DEFAULT_PROJECT_ID)
+    .order('due_date', { ascending: true, nullsFirst: true })
+    .order('sort_order')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as Todo[];
+}
+
+export async function createTodo(todo: Omit<Todo, 'id' | 'display_id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from('todos')
+    .insert({ ...todo, project_id: DEFAULT_PROJECT_ID })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Todo;
+}
+
+export async function updateTodo(id: string, updates: Partial<Todo>) {
+  const { data, error } = await supabase
+    .from('todos')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Todo;
+}
+
+export async function toggleTodoComplete(id: string, isCompleted: boolean) {
+  const updates: Partial<Todo> = {
+    is_completed: isCompleted,
+    completed_at: isCompleted ? new Date().toISOString() : null,
+  };
+
+  const { data, error } = await supabase
+    .from('todos')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Todo;
+}
+
+export async function deleteTodo(id: string) {
+  const { error } = await supabase
+    .from('todos')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 // CSV Export

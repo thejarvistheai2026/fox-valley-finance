@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import type { Todo } from '@/types';
+import { getTodos, createTodo, updateTodo, toggleTodoComplete, deleteTodo } from '@/lib/supabase';
 
 // Group todos by month
 function groupTodosByMonth(todos: Todo[]) {
@@ -63,12 +64,9 @@ function getMonthLabel(monthKey: string): string {
   return format(date, 'MMMM yyyy');
 }
 
-const STORAGE_KEY = 'fox-valley-todos';
-
 export function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [formData, setFormData] = useState({
@@ -78,33 +76,22 @@ export function TodosPage() {
     is_milestone: false,
   });
 
-  // Load todos from localStorage on mount - ONLY ONCE
+  // Load todos from database on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          console.log('Loaded todos from storage:', parsed.length);
-          setTodos(parsed);
-        }
-      } catch (e) {
-        console.error('Failed to parse todos:', e);
-      }
-    } else {
-      console.log('No stored todos found');
-    }
-    setLoading(false);
-    setIsInitialized(true);
+    fetchTodos();
   }, []);
 
-  // Save todos to localStorage whenever they change
-  useEffect(() => {
-    if (isInitialized && !loading) {
-      console.log('Saving todos to storage:', todos.length);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  const fetchTodos = async () => {
+    setLoading(true);
+    try {
+      const data = await getTodos();
+      setTodos(data);
+    } catch (err) {
+      console.error('Failed to fetch todos:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [todos, loading, isInitialized]);
+  };
 
   const { undated, byMonth } = groupTodosByMonth(todos);
 
@@ -130,46 +117,55 @@ export function TodosPage() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = () => {
-    if (editingTodo) {
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === editingTodo.id
-            ? {
-                ...t,
-                title: formData.title,
-                description: formData.description || undefined,
-                due_date: formData.due_date || undefined,
-                is_milestone: formData.is_milestone,
-              }
-            : t
-        )
-      );
-    } else {
-      const newTodo: Todo = {
-        id: Math.random().toString(36).substr(2, 9),
-        project_id: 'default',
-        title: formData.title,
-        description: formData.description || undefined,
-        due_date: formData.due_date || undefined,
-        is_completed: false,
-        is_milestone: formData.is_milestone,
-        display_id: `TODO-${String(todos.length + 1).padStart(3, '0')}`,
-        created_at: new Date().toISOString(),
-      };
-      setTodos((prev) => [...prev, newTodo]);
+  const handleSubmit = async () => {
+    try {
+      if (editingTodo) {
+        const updated = await updateTodo(editingTodo.id, {
+          title: formData.title,
+          description: formData.description || undefined,
+          due_date: formData.due_date || undefined,
+          is_milestone: formData.is_milestone,
+        });
+        setTodos((prev) =>
+          prev.map((t) => (t.id === updated.id ? updated : t))
+        );
+      } else {
+        const newTodo = await createTodo({
+          title: formData.title,
+          description: formData.description || undefined,
+          due_date: formData.due_date || undefined,
+          is_milestone: formData.is_milestone,
+          is_completed: false,
+        });
+        setTodos((prev) => [...prev, newTodo]);
+      }
+      setDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save todo:', err);
+      alert('Failed to save todo');
     }
-    setDialogOpen(false);
   };
 
-  const handleToggleComplete = (id: string) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, is_completed: !t.is_completed } : t))
-    );
+  const handleToggleComplete = async (id: string, currentStatus: boolean) => {
+    try {
+      const updated = await toggleTodoComplete(id, !currentStatus);
+      setTodos((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t))
+      );
+    } catch (err) {
+      console.error('Failed to update todo:', err);
+      alert('Failed to update todo');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTodo(id);
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error('Failed to delete todo:', err);
+      alert('Failed to delete todo');
+    }
   };
 
   const renderTodoItem = (todo: Todo) => (
@@ -183,7 +179,7 @@ export function TodosPage() {
     >
       <Checkbox
         checked={todo.is_completed}
-        onCheckedChange={() => handleToggleComplete(todo.id)}
+        onCheckedChange={() => handleToggleComplete(todo.id, todo.is_completed)}
         className="mt-0.5"
       />
       <div className="flex-1 min-w-0">
