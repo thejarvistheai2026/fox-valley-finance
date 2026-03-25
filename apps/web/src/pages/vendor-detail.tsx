@@ -50,6 +50,12 @@ export function VendorDetailPage() {
   const [documentUploadOpen, setDocumentUploadOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [deleteEstimateConfirmOpen, setDeleteEstimateConfirmOpen] = useState(false);
+  const [estimateToDelete, setEstimateToDelete] = useState<string | null>(null);
+  const [deleteReceiptConfirmOpen, setDeleteReceiptConfirmOpen] = useState(false);
+  const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
+  const [unlinkReceiptConfirmOpen, setUnlinkReceiptConfirmOpen] = useState(false);
+  const [receiptToUnlink, setReceiptToUnlink] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchVendorData() {
@@ -300,13 +306,17 @@ export function VendorDetailPage() {
     }
   };
 
-  const handleDeleteEstimate = async (estimateId: string) => {
-    if (!vendor) return;
-    if (!confirm('Are you sure you want to delete this estimate? This will also unlink any associated receipts.')) return;
+  const handleDeleteEstimate = (estimateId: string) => {
+    setEstimateToDelete(estimateId);
+    setDeleteEstimateConfirmOpen(true);
+  };
+
+  const confirmDeleteEstimate = async () => {
+    if (!vendor || !estimateToDelete) return;
 
     try {
       const { deleteEstimate } = await import('@/lib/supabase');
-      await deleteEstimate(estimateId);
+      await deleteEstimate(estimateToDelete);
       // Refresh estimates
       const estimatesData = await getEstimates(vendor.id);
       setEstimates(estimatesData);
@@ -316,16 +326,23 @@ export function VendorDetailPage() {
     } catch (err) {
       console.error('Failed to delete estimate:', err);
       alert('Failed to delete estimate: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setDeleteEstimateConfirmOpen(false);
+      setEstimateToDelete(null);
     }
   };
 
-  const handleDeleteReceipt = async (receiptId: string) => {
-    if (!vendor) return;
-    if (!confirm('Are you sure you want to delete this receipt?')) return;
+  const handleDeleteReceipt = (receiptId: string) => {
+    setReceiptToDelete(receiptId);
+    setDeleteReceiptConfirmOpen(true);
+  };
+
+  const confirmDeleteReceipt = async () => {
+    if (!vendor || !receiptToDelete) return;
 
     try {
       const { deleteReceipt } = await import('@/lib/supabase');
-      await deleteReceipt(receiptId);
+      await deleteReceipt(receiptToDelete);
       // Refresh receipts
       const receiptsData = await getReceipts({ vendorId: vendor.id });
       setReceipts(receiptsData);
@@ -335,22 +352,32 @@ export function VendorDetailPage() {
     } catch (err) {
       console.error('Failed to delete receipt:', err);
       alert('Failed to delete receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setDeleteReceiptConfirmOpen(false);
+      setReceiptToDelete(null);
     }
   };
 
-  const handleUnlinkReceipt = async (receiptId: string) => {
-    if (!vendor) return;
-    if (!confirm('Unlink this receipt from the estimate? The receipt will still be available.')) return;
+  const handleUnlinkReceipt = (receiptId: string) => {
+    setReceiptToUnlink(receiptId);
+    setUnlinkReceiptConfirmOpen(true);
+  };
+
+  const confirmUnlinkReceipt = async () => {
+    if (!vendor || !receiptToUnlink) return;
 
     try {
       const { unlinkReceiptFromEstimate } = await import('@/lib/supabase');
-      await unlinkReceiptFromEstimate(receiptId);
+      await unlinkReceiptFromEstimate(receiptToUnlink);
       // Refresh receipts
       const receiptsData = await getReceipts({ vendorId: vendor.id });
       setReceipts(receiptsData);
     } catch (err) {
       console.error('Failed to unlink receipt:', err);
       alert('Failed to unlink receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setUnlinkReceiptConfirmOpen(false);
+      setReceiptToUnlink(null);
     }
   };
 
@@ -784,6 +811,66 @@ export function VendorDetailPage() {
             </Button>
             <Button variant="destructive" onClick={confirmDeleteDocument}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Estimate Confirmation Dialog */}
+      <Dialog open={deleteEstimateConfirmOpen} onOpenChange={setDeleteEstimateConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Estimate</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this estimate? This will also unlink any associated receipts.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setDeleteEstimateConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteEstimate}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Receipt Confirmation Dialog */}
+      <Dialog open={deleteReceiptConfirmOpen} onOpenChange={setDeleteReceiptConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Receipt</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this receipt? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setDeleteReceiptConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteReceipt}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unlink Receipt Confirmation Dialog */}
+      <Dialog open={unlinkReceiptConfirmOpen} onOpenChange={setUnlinkReceiptConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Unlink Receipt</DialogTitle>
+            <DialogDescription>
+              Unlink this receipt from the estimate? The receipt will still be available.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setUnlinkReceiptConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmUnlinkReceipt}>
+              Unlink
             </Button>
           </DialogFooter>
         </DialogContent>
