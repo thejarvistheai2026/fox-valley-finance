@@ -248,19 +248,23 @@ export function VendorDetailPage() {
 
         console.log('File uploaded to:', path);
 
-        await createDocument({
-          project_id: vendor.project_id,
-          vendor_id: vendor.id,
-          receipt_id: newReceipt.id,
-          display_name: file.name,
-          original_file_name: file.name,
-          storage_path: path,
-          file_type: file.type,
-          file_size_bytes: file.size,
-          tags: [],
-        });
-
-        console.log('Document record created');
+        try {
+          const newDoc = await createDocument({
+            project_id: vendor.project_id,
+            vendor_id: vendor.id,
+            receipt_id: newReceipt.id,
+            display_name: file.name,
+            original_file_name: file.name,
+            storage_path: path,
+            file_type: file.type,
+            file_size_bytes: file.size,
+            tags: [],
+          });
+          console.log('Document record created:', newDoc);
+        } catch (docErr) {
+          console.error('Failed to create document record:', docErr);
+          alert('Receipt created but document metadata failed: ' + (docErr instanceof Error ? docErr.message : 'Unknown error'));
+        }
 
         // Refresh documents
         const docsData = await getDocuments(vendor.id);
