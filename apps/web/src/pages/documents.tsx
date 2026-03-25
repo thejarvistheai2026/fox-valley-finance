@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,20 +12,30 @@ import {
   Trash2,
   Building2,
   Receipt,
-  Calculator
+  Calculator,
+  Download
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { getAllDocuments, getDocumentPublicUrl, deleteDocument, getVendors } from '@/lib/supabase';
 import type { Document, Vendor } from '@/types';
 import { format } from 'date-fns';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
 
 export function DocumentsPage() {
-  const navigate = useNavigate();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -48,14 +57,22 @@ export function DocumentsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
+  const handleDelete = (id: string) => {
+    setDocumentToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!documentToDelete) return;
     try {
-      await deleteDocument(id);
-      setDocuments(prev => prev.filter(d => d.id !== id));
+      await deleteDocument(documentToDelete);
+      setDocuments(prev => prev.filter(d => d.id !== documentToDelete));
     } catch (err) {
       console.error('Failed to delete document:', err);
       alert('Failed to delete document');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDocumentToDelete(null);
     }
   };
 
@@ -189,7 +206,7 @@ export function DocumentsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+                  <div className="flex gap-2 mt-4 pt-4 border-t">
                     <Button
                       variant="outline"
                       size="sm"
@@ -199,20 +216,27 @@ export function DocumentsPage() {
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    {doc.receipt_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/vendors/${doc.vendor_id}#receipt-${doc.receipt_id}`)}
-                      >
-                        <Receipt className="h-4 w-4" />
-                      </Button>
-                    )}
                     <Button
-                      variant="ghost"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = getDocumentPublicUrl(doc.storage_path);
+                        link.download = doc.display_name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDelete(doc.id)}
+                      title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -236,6 +260,26 @@ export function DocumentsPage() {
         vendors={vendors}
         onUploadComplete={fetchData}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteDocument}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

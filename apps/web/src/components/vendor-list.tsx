@@ -74,31 +74,45 @@ export function VendorList({ vendors, onArchive, onUpdate }: VendorListProps) {
 
         {/* Tag Filter */}
         {uniqueTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground mr-1">Filter by:</span>
-            {uniqueTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className={cn(
-                  "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
-                  selectedTag === tag
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                )}
-              >
-                {tag}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-medium text-muted-foreground">Filter by:</span>
+            <div className="flex flex-wrap gap-2">
+              {uniqueTags.map((tag) => {
+                const count = vendors.filter(v => v.tags?.includes(tag)).length;
+                const isSelected = selectedTag === tag;
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(isSelected ? null : tag)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                      isSelected
+                        ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground border border-border/50"
+                    )}
+                  >
+                    <span>{tag}</span>
+                    <span className={cn(
+                      "inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold rounded-full",
+                      isSelected
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-background text-muted-foreground border border-border/50"
+                    )}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
             {selectedTag && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 px-2.5 text-sm text-muted-foreground hover:text-foreground rounded-full"
                 onClick={() => setSelectedTag(null)}
               >
-                <X className="h-3 w-3 mr-1" />
-                Clear
+                <X className="h-3.5 w-3.5 mr-1" />
+                Clear filter
               </Button>
             )}
           </div>
