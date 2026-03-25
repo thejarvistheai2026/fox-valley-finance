@@ -1,7 +1,7 @@
 export type VendorType = 'contract' | 'retail';
 export type EstimateStatus = 'active' | 'revised' | 'declined';
 export type ReceiptStatus = 'inbox' | 'confirmed';
-export type PaymentType = 'deposit' | 'progress' | 'final' | 'additional';
+export type PaymentType = 'deposit' | 'final' | 'additional';
 export type TaxProvince = 'ON' | 'QC';
 
 export interface Vendor {
@@ -125,7 +125,6 @@ export const DATE_RANGES: DateRange[] = [
 
 export const PAYMENT_TYPES: { value: PaymentType; label: string }[] = [
   { value: 'deposit', label: 'Deposit' },
-  { value: 'progress', label: 'Progress Payment' },
   { value: 'final', label: 'Final Payment' },
   { value: 'additional', label: 'Additional' },
 ];
