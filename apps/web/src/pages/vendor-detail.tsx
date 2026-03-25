@@ -226,6 +226,7 @@ export function VendorDetailPage() {
 
     console.log('Creating receipt with data:', data);
     console.log('estimate_id:', data.estimate_id);
+    console.log('File received:', file);
 
     try {
       const receiptData = {
@@ -265,15 +266,15 @@ export function VendorDetailPage() {
           console.error('Failed to create document record:', docErr);
           alert('Receipt created but document metadata failed: ' + (docErr instanceof Error ? docErr.message : 'Unknown error'));
         }
-
-        // Refresh documents
-        const docsData = await getDocuments(vendor.id);
-        setDocuments(docsData);
       }
 
       // Refresh receipts list
       const receiptsData = await getReceipts({ vendorId: vendor.id });
       setReceipts(receiptsData);
+
+      // Refresh documents to include the new receipt document
+      const docsData = await getDocuments(vendor.id);
+      setDocuments(docsData);
 
       // Refresh estimates to update paid/outstanding amounts
       const estimatesData = await getEstimates(vendor.id);

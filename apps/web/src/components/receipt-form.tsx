@@ -113,6 +113,7 @@ export function ReceiptFormDialog({
   const handleSubmit = (data: ReceiptFormData) => {
     console.log('Receipt form submitting:', data);
     console.log('estimate_id from form:', data.estimate_id);
+    console.log('Selected file:', selectedFile);
     const submitData = {
       ...data,
       vendor_id: vendorId,
