@@ -1181,7 +1181,7 @@ function ContractVendorLayout({
                                     taxProvince={vendor.tax_province}
                                     estimates={estimates}
                                     preSelectedEstimateId={estimate.id}
-                                    onSubmit={(data) => onCreateReceipt({ ...data, estimate_id: estimate.id })}
+                                    onSubmit={(data, file) => onCreateReceipt({ ...data, estimate_id: estimate.id }, file)}
                                     trigger={
                                       <Button size="sm">
                                         <Plus className="h-4 w-4 mr-2" />
