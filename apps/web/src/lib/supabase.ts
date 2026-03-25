@@ -87,14 +87,14 @@ export async function archiveVendor(id: string) {
 // Estimate queries
 export async function getEstimates(vendorId?: string) {
   let query = supabase
-    .from('estimates')
+    .from('estimate_with_balance')
     .select('*, linked_receipts:receipts(*)')
     .order('date', { ascending: false });
-  
+
   if (vendorId) {
     query = query.eq('vendor_id', vendorId);
   }
-  
+
   const { data, error } = await query;
   if (error) throw error;
   return data as Estimate[];
