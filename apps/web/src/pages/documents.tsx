@@ -86,6 +86,8 @@ export function DocumentsPage() {
       alert('Failed to download document');
     }
   };
+
+  const confirmDeleteDocument = async () => {
     if (!documentToDelete) return;
     try {
       await deleteDocument(documentToDelete);
