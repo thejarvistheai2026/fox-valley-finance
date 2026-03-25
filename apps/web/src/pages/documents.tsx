@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import {
   FileText,
   ExternalLink,
@@ -32,7 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getAllDocuments, getDocumentViewUrl, getDocumentPublicUrl, downloadDocument, deleteDocument, getVendors } from '@/lib/supabase';
+import { getAllDocuments, getDocumentViewUrl, getDocumentPublicUrl, downloadDocument, deleteDocument, updateDocument, getVendors } from '@/lib/supabase';
 import type { Document, Vendor } from '@/types';
 import { format } from 'date-fns';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
@@ -48,6 +49,10 @@ export function DocumentsPage() {
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedDocumentForNotes, setSelectedDocumentForNotes] = useState<Document | null>(null);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editedNotes, setEditedNotes] = useState('');
+  const [editedTags, setEditedTags] = useState<string[]>([]);
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -103,7 +108,40 @@ export function DocumentsPage() {
 
   const handleViewNotes = (doc: Document) => {
     setSelectedDocumentForNotes(doc);
+    setEditedNotes(doc.notes || '');
+    setEditedTags(doc.tags || []);
+    setIsEditingNotes(false);
     setNotesDialogOpen(true);
+  };
+
+  const toggleEditedTag = (tagValue: string) => {
+    setEditedTags(prev =>
+      prev.includes(tagValue)
+        ? prev.filter(t => t !== tagValue)
+        : [...prev, tagValue]
+    );
+  };
+
+  const handleSaveNotes = async () => {
+    if (!selectedDocumentForNotes) return;
+    setIsSavingNotes(true);
+    try {
+      const updated = await updateDocument(selectedDocumentForNotes.id, {
+        notes: editedNotes || null,
+        tags: editedTags
+      });
+      // Update the documents list
+      setDocuments(prev =>
+        prev.map(d => d.id === updated.id ? updated : d)
+      );
+      setSelectedDocumentForNotes(updated);
+      setIsEditingNotes(false);
+    } catch (err) {
+      console.error('Failed to save document:', err);
+      alert('Failed to save changes');
+    } finally {
+      setIsSavingNotes(false);
+    }
   };
 
   const confirmDeleteDocument = async () => {
@@ -385,26 +423,104 @@ export function DocumentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Notes Dialog */}
-      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+      {/* Notes/Edit Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={(open) => {
+        if (!open) setIsEditingNotes(false);
+        setNotesDialogOpen(open);
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Document Notes</DialogTitle>
+            <DialogTitle>{isEditingNotes ? 'Edit Document' : 'Document Notes'}</DialogTitle>
             <DialogDescription>
               {selectedDocumentForNotes?.display_name}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            {selectedDocumentForNotes?.notes ? (
-              <p className="text-sm text-foreground whitespace-pre-wrap">{selectedDocumentForNotes.notes}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No notes added to this document.</p>
-            )}
+          <div className="space-y-4 py-4">
+            {/* Tags Section - Always visible */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tags</label>
+              {isEditingNotes ? (
+                <div className="flex flex-wrap gap-2">
+                  {DOCUMENT_TAGS.map((tag) => (
+                    <button
+                      key={tag.value}
+                      type="button"
+                      onClick={() => toggleEditedTag(tag.value)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                        editedTags.includes(tag.value)
+                          ? tag.color
+                          : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80'
+                      }`}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedDocumentForNotes?.tags?.length ? (
+                    selectedDocumentForNotes.tags.map((tag) => {
+                      const tagConfig = DOCUMENT_TAGS.find(t => t.value === tag);
+                      if (!tagConfig) return null;
+                      return (
+                        <Badge key={tag} className={`text-xs ${tagConfig.color} border`}>
+                          {tagConfig.label}
+                        </Badge>
+                      );
+                    })
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">No tags</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notes</label>
+              {isEditingNotes ? (
+                <Textarea
+                  value={editedNotes}
+                  onChange={(e) => setEditedNotes(e.target.value)}
+                  placeholder="Add notes about this document..."
+                  rows={4}
+                  className="resize-none"
+                />
+              ) : (
+                <div className="bg-muted/50 rounded-lg p-3 min-h-[80px]">
+                  {selectedDocumentForNotes?.notes ? (
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{selectedDocumentForNotes.notes}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No notes added to this document.</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNotesDialogOpen(false)}>
-              Close
-            </Button>
+          <DialogFooter className="gap-2">
+            {isEditingNotes ? (
+              <>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingNotes(false);
+                  setEditedNotes(selectedDocumentForNotes?.notes || '');
+                  setEditedTags(selectedDocumentForNotes?.tags || []);
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveNotes} disabled={isSavingNotes}>
+                  {isSavingNotes ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setNotesDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => setIsEditingNotes(true)}>
+                  Edit
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

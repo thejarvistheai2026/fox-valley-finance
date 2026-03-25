@@ -356,6 +356,18 @@ export async function deleteDocument(id: string) {
   if (error) throw error;
 }
 
+export async function updateDocument(id: string, updates: Partial<Document>) {
+  const { data, error } = await supabase
+    .from('documents')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Document;
+}
+
 // Get URL for viewing a document (uses signed URL for all file types)
 export async function getDocumentViewUrl(storagePath: string): Promise<string> {
   // For PDFs and other non-image files, we need a signed URL
