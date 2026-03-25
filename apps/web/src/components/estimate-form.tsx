@@ -37,7 +37,7 @@ const estimateSchema = z.object({
   subtotal: z.number().min(0, 'Amount must be 0 or greater'),
   hst_amount: z.number().min(0, 'Amount must be 0 or greater'),
   estimated_total: z.number().min(0, 'Amount must be 0 or greater'),
-  status: z.enum(['active', 'revised', 'declined'] as const),
+  status: z.enum(['active', 'revised', 'declined', 'completed'] as const),
   notes: z.string().optional(),
 });
 
