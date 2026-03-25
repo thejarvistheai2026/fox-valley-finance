@@ -1067,6 +1067,7 @@ function ContractVendorLayout({
                                         <th className="text-left py-2 px-4 font-medium w-28">Date</th>
                                         <th className="text-right py-2 px-4 font-medium w-24">Total</th>
                                         <th className="text-right py-2 px-4 font-medium w-20">HST</th>
+                                        <th className="text-right py-2 px-4 font-medium w-24"></th>
                                         <th className="text-center py-2 px-4 font-medium w-20">Status</th>
                                         <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                                       </tr>
@@ -1095,6 +1096,7 @@ function ContractVendorLayout({
                                           <td className="py-2 px-4 text-right">
                                             <Currency amount={receipt.tax_total} />
                                           </td>
+                                          <td className="py-2 px-4 text-right"></td>
                                           <td className="py-2 px-4 text-center">
                                             <ReceiptStatusBadge status={receipt.status || 'confirmed'} />
                                           </td>
