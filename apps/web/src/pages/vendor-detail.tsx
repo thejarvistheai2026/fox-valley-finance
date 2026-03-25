@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { VendorTypeBadge } from '@/components/badge';
+import { VendorTypeBadge, ReceiptStatusBadge } from '@/components/badge';
 import { Currency } from '@/components/currency';
 import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
@@ -1076,19 +1076,14 @@ function ContractVendorLayout({
                                         <tr key={receipt.id} className="border-b last:border-0">
                                           <td className="py-2 px-4"></td>
                                           <td className="py-2 px-4">
-                                            <Button
-                                              variant="link"
-                                              size="sm"
-                                              className="h-auto p-0 font-medium"
-                                              onClick={() => onViewReceipt(receipt)}
-                                            >
+                                            <span className="font-medium text-sm">
                                               {receipt.display_id}
-                                            </Button>
+                                            </span>
                                           </td>
                                           <td className="py-2 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                                           <td className="py-2 px-4">
                                             {receipt.payment_type && (
-                                              <Badge variant="outline" className="capitalize">
+                                              <Badge variant="outline" className="capitalize text-xs">
                                                 {receipt.payment_type}
                                               </Badge>
                                             )}
@@ -1101,9 +1096,7 @@ function ContractVendorLayout({
                                             <Currency amount={receipt.tax_total} />
                                           </td>
                                           <td className="py-2 px-4 text-center">
-                                            <Badge variant="outline" className="text-xs capitalize">
-                                              {receipt.status || 'confirmed'}
-                                            </Badge>
+                                            <ReceiptStatusBadge status={receipt.status || 'confirmed'} />
                                           </td>
                                           <td className="py-2 px-4 text-center">
                                             <div className="flex items-center justify-center gap-1">
@@ -1225,20 +1218,15 @@ function ContractVendorLayout({
                   {unlinkedReceipts.map((receipt) => (
                     <tr key={receipt.id} className="border-t hover:bg-muted/50">
                       <td className="py-3 px-4">
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 font-medium"
-                          onClick={() => onViewReceipt(receipt)}
-                        >
+                        <span className="font-medium text-sm">
                           {receipt.display_id}
-                        </Button>
+                        </span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                       <td className="py-3 px-4">{receipt.date}</td>
                       <td className="py-3 px-4">
                         {receipt.payment_type && (
-                          <Badge variant="outline" className="capitalize">
+                          <Badge variant="outline" className="capitalize text-xs">
                             {receipt.payment_type}
                           </Badge>
                         )}
@@ -1251,9 +1239,7 @@ function ContractVendorLayout({
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                       <td className="py-3 px-4 text-center">
-                        <Badge variant="outline">
-                          {receipt.status || 'unlinked'}
-                        </Badge>
+                        <ReceiptStatusBadge status={receipt.status || 'confirmed'} />
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1">
@@ -1365,14 +1351,9 @@ function RetailVendorLayout({
                 {sortedReceipts.map((receipt) => (
                   <tr key={receipt.id} className="border-t hover:bg-muted/50">
                     <td className="py-3 px-4">
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => onViewReceipt(receipt)}
-                      >
+                      <span className="font-medium text-sm">
                         {receipt.display_id}
-                      </Button>
+                      </span>
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.vendor_ref}</td>
                     <td className="py-3 px-4">{receipt.date}</td>
@@ -1393,9 +1374,7 @@ function RetailVendorLayout({
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">{receipt.notes}</td>
                     <td className="py-3 px-4 text-center">
-                      <Badge variant="outline" className="capitalize">
-                        {receipt.status || 'confirmed'}
-                      </Badge>
+                      <ReceiptStatusBadge status={receipt.status || 'confirmed'} />
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1">
