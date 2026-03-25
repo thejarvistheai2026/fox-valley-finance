@@ -18,6 +18,7 @@ import {
   Link2Off,
   Eye,
   Download,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -470,7 +471,7 @@ export function VendorDetailPage() {
             )}
             
             {vendor.email && (
-              <a 
+              <a
                 href={`mailto:${vendor.email}`}
                 className="flex items-start gap-2 hover:text-primary transition-colors"
               >
@@ -483,7 +484,24 @@ export function VendorDetailPage() {
                 </div>
               </a>
             )}
-            
+
+            {vendor.website && (
+              <a
+                href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 hover:text-primary transition-colors"
+              >
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Website</p>
+                  <p className="text-sm text-muted-foreground truncate max-w-[150px]">{vendor.website.replace(/^https?:\/\//, '')}</p>
+                </div>
+              </a>
+            )}
+
             {vendor.address && (
               <div className="flex items-start gap-2">
                 <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
