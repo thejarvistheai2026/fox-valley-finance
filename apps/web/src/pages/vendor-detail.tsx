@@ -681,6 +681,11 @@ export function VendorDetailPage() {
                           Linked to {estimates.find(e => e.id === doc.estimate_id)?.display_id}
                         </p>
                       )}
+                      {doc.receipt_id && (
+                        <p className="text-xs text-muted-foreground">
+                          Receipt: {receipts.find(r => r.id === doc.receipt_id)?.display_id}
+                        </p>
+                      )}
                       {doc.notes && (
                         <p className="text-xs text-muted-foreground mt-1">{doc.notes}</p>
                       )}
