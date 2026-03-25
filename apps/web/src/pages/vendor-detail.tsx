@@ -1222,6 +1222,20 @@ function ContractVendorLayout({
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
+                              {estimate.notes && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-amber-600 hover:text-amber-700"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingEstimate(estimate);
+                                  }}
+                                  title="View notes"
+                                >
+                                  <StickyNote className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
