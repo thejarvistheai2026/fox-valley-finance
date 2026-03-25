@@ -484,7 +484,7 @@ export function VendorDetailPage() {
       )}
 
       {/* Back Navigation */}
-      <Button variant="ghost" onClick={() => navigate('/vendors')} className="-ml-4">
+      <Button variant="ghost" onClick={() => navigate('/vendors')} className="self-start">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Vendors
       </Button>
