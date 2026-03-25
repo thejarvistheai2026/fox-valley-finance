@@ -32,7 +32,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -382,29 +382,21 @@ export function VendorDetailPage() {
     setDocuments(docsData);
   };
 
-  const handleViewDocument = async (storagePath: string) => {
-    try {
-      const signedUrl = await getDocumentViewUrl(storagePath);
-      window.open(signedUrl, '_blank');
-    } catch (err) {
-      console.error('Failed to get document URL:', err);
-      alert('Failed to open document');
-    }
+  const handleViewDocument = (storagePath: string) => {
+    // Use public URL for images (works with /render/image/public/)
+    const imageUrl = getDocumentPublicUrl(storagePath);
+    window.open(imageUrl, '_blank');
   };
 
-  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
-    try {
-      const signedUrl = await getDocumentViewUrl(storagePath);
-      const link = document.createElement('a');
-      link.href = signedUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error('Failed to download document:', err);
-      alert('Failed to download document');
-    }
+  const handleDownloadDocument = (storagePath: string, fileName: string) => {
+    // Use public URL for downloads (works with /render/image/public/)
+    const imageUrl = getDocumentPublicUrl(storagePath);
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getLinkedReceipts = (estimateId: string) => {
@@ -1048,18 +1040,13 @@ function ContractVendorLayout({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                onClick={async (e) => {
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   // Find document attached to this estimate
                                   const estimateDoc = _documents.find((d: Document) => d.estimate_id === estimate.id);
                                   if (estimateDoc?.storage_path) {
-                                    try {
-                                      const signedUrl = await getDocumentViewUrl(estimateDoc.storage_path);
-                                      window.open(signedUrl, '_blank');
-                                    } catch (err) {
-                                      console.error('Failed to get document URL:', err);
-                                      alert('Failed to open document');
-                                    }
+                                    const imageUrl = getDocumentPublicUrl(estimateDoc.storage_path);
+                                    window.open(imageUrl, '_blank');
                                   } else {
                                     // No document - expand row to show details
                                     setExpandedEstimate(estimate.id);
