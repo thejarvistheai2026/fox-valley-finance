@@ -254,6 +254,10 @@ export function VendorDetailPage() {
       // Refresh receipts list
       const receiptsData = await getReceipts({ vendorId: vendor.id });
       setReceipts(receiptsData);
+
+      // Refresh estimates to update paid/outstanding amounts
+      const estimatesData = await getEstimates(vendor.id);
+      setEstimates(estimatesData);
     } catch (err) {
       console.error('Failed to create receipt:', err);
       alert('Failed to create receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));

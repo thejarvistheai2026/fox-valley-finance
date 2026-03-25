@@ -386,7 +386,7 @@ export function ReceiptFormDialog({
             />
           </div>
 
-          <DialogFooter className="gap-3 pt-4">
+          <DialogFooter className="gap-3 pt-6 pb-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11 px-6">
               Cancel
             </Button>
