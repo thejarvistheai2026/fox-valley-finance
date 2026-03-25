@@ -251,7 +251,8 @@ export async function unlinkReceiptFromEstimate(receiptId: string) {
 // Dashboard queries
 export async function getDashboardSummary(dateRange?: { start: string; end: string }) {
   const { data, error } = await supabase.rpc('get_dashboard_summary', {
-    p_date_range: dateRange ? { start: dateRange.start, end: dateRange.end } : null
+    p_start_date: dateRange?.start || null,
+    p_end_date: dateRange?.end || null
   });
   if (error) throw error;
   return data;
@@ -259,7 +260,8 @@ export async function getDashboardSummary(dateRange?: { start: string; end: stri
 
 export async function getVendorSummaries(dateRange?: { start: string; end: string }) {
   const { data, error } = await supabase.rpc('get_vendor_summaries', {
-    p_date_range: dateRange ? { start: dateRange.start, end: dateRange.end } : null
+    p_start_date: dateRange?.start || null,
+    p_end_date: dateRange?.end || null
   });
   if (error) throw error;
   return data as Vendor[];
