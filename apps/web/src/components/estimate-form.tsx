@@ -264,9 +264,10 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="active">In Progress</SelectItem>
                   <SelectItem value="revised">Revised</SelectItem>
                   <SelectItem value="declined">Declined</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>

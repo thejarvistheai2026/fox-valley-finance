@@ -1124,10 +1124,13 @@ function ContractVendorLayout({
                                 className={
                                   estimate.status === 'active' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
                                   estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
+                                  estimate.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
                                   'bg-red-100 text-red-800 hover:bg-red-100'
                                 }
                               >
-                                {estimate.status === 'active' ? 'Active' : estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
+                                {estimate.status === 'active' ? 'In Progress' :
+                                  estimate.status === 'completed' ? 'Completed' :
+                                  estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
                               </Badge>
                             </div>
                           </td>

@@ -29,9 +29,10 @@ interface EstimateStatusBadgeProps {
 
 export function EstimateStatusBadge({ status, className }: EstimateStatusBadgeProps) {
   const variants: Record<EstimateStatus, { className: string; label: string }> = {
-    'active': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100', label: 'Active' },
+    'active': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100', label: 'In Progress' },
     'revised': { className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100', label: 'Revised' },
     'declined': { className: 'bg-red-100 text-red-800 hover:bg-red-100', label: 'Declined' },
+    'completed': { className: 'bg-green-100 text-green-800 hover:bg-green-100', label: 'Completed' },
   };
 
   const { className: statusClassName, label } = variants[status];
