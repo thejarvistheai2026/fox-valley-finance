@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import JSZip from 'jszip';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
@@ -411,6 +412,60 @@ export async function createSignedDocumentUrl(storagePath: string): Promise<stri
   }
   console.log('Signed URL created:', data?.signedUrl?.substring(0, 50) + '...');
   return data.signedUrl;
+}
+
+// Export all documents as a zip file
+export async function exportAllDocuments(): Promise<void> {
+  // Fetch all documents
+  const { data: documents, error: docsError } = await supabase
+    .from('documents')
+    .select('*, vendor:vendors(name)')
+    .order('created_at', { ascending: false });
+
+  if (docsError) {
+    console.error('Error fetching documents:', docsError);
+    throw docsError;
+  }
+
+  if (!documents || documents.length === 0) {
+    throw new Error('No documents found to export');
+  }
+
+  const zip = new JSZip();
+
+  // Download each document and add to zip
+  for (const doc of documents) {
+    try {
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('documents')
+        .download(doc.storage_path);
+
+      if (downloadError) {
+        console.error(`Failed to download ${doc.display_name}:`, downloadError);
+        continue;
+      }
+
+      // Create a folder structure: vendor_name/file_name
+      const vendorName = doc.vendor?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
+      const fileName = doc.display_name || doc.original_file_name || 'document';
+      zip.file(`${vendorName}/${fileName}`, fileData);
+    } catch (err) {
+      console.error(`Error processing ${doc.display_name}:`, err);
+    }
+  }
+
+  // Generate zip file
+  const zipContent = await zip.generateAsync({ type: 'blob' });
+
+  // Trigger download
+  const zipUrl = URL.createObjectURL(zipContent);
+  const link = document.createElement('a');
+  link.href = zipUrl;
+  link.download = `documents-export-${new Date().toISOString().split('T')[0]}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(zipUrl);
 }
 
 export async function searchAll(query: string) {

@@ -11,7 +11,7 @@ import {
   FileText,
   Download
 } from 'lucide-react';
-import { getReceipts, generateCSVReceipts, downloadCSV } from '@/lib/supabase';
+import { getReceipts, exportAllDocuments } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -109,17 +109,15 @@ function SidebarContent({ inboxCount, user, onLogout }: { inboxCount: number; us
                 className="w-full justify-start gap-3"
                 onClick={async () => {
                   try {
-                    const receipts = await getReceipts();
-                    const csv = generateCSVReceipts(receipts);
-                    downloadCSV(csv, `receipts-export-${new Date().toISOString().split('T')[0]}.csv`);
+                    await exportAllDocuments();
                   } catch (err) {
                     console.error('Export failed:', err);
-                    alert('Failed to export receipts');
+                    alert(err instanceof Error ? err.message : 'Failed to export documents');
                   }
                 }}
               >
                 <Download className="h-4 w-4" />
-                Export Receipts
+                Export Documents
               </Button>
               <Button
                 variant="ghost"
