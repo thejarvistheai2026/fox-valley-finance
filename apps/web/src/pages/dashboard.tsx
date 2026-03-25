@@ -155,7 +155,7 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pb-32 -mb-32">
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
       </div>
