@@ -163,14 +163,14 @@ export function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         <SummaryCard
-          title="Total Estimated"
+          title="Total - All Estimates"
           value={summary?.total_estimated || 0}
           icon={TrendingUp}
           description="Draft + In Progress"
           loading={loading}
         />
         <SummaryCard
-          title="Current Total Estimate"
+          title="Total - In-Progress Estimates"
           value={summary?.current_total_estimate || 0}
           icon={TrendingUp}
           description="In Progress only"
