@@ -68,6 +68,7 @@ const STORAGE_KEY = 'fox-valley-todos';
 export function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [formData, setFormData] = useState({
@@ -77,26 +78,33 @@ export function TodosPage() {
     is_milestone: false,
   });
 
-  // Load todos from localStorage on mount
+  // Load todos from localStorage on mount - ONLY ONCE
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setTodos(parsed);
+        if (Array.isArray(parsed)) {
+          console.log('Loaded todos from storage:', parsed.length);
+          setTodos(parsed);
+        }
       } catch (e) {
         console.error('Failed to parse todos:', e);
       }
+    } else {
+      console.log('No stored todos found');
     }
     setLoading(false);
+    setIsInitialized(true);
   }, []);
 
   // Save todos to localStorage whenever they change
   useEffect(() => {
-    if (!loading) {
+    if (isInitialized && !loading) {
+      console.log('Saving todos to storage:', todos.length);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
     }
-  }, [todos, loading]);
+  }, [todos, loading, isInitialized]);
 
   const { undated, byMonth } = groupTodosByMonth(todos);
 
