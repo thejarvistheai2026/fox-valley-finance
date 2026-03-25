@@ -294,14 +294,20 @@ export function ReceiptFormDialog({
             </div>
 
             {vendorType === 'contract' && estimates.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2 pr-4">
                 <Label htmlFor="estimate_id">Link to Estimate</Label>
                 <Select
                   value={form.watch('estimate_id') || undefined}
                   onValueChange={(value) => form.setValue('estimate_id', value || undefined)}
                 >
                   <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select estimate (optional)" />
+                    <SelectValue placeholder="Select estimate (optional)">
+                      {(() => {
+                        const selectedId = form.watch('estimate_id');
+                        const selected = estimates.find(e => e.id === selectedId);
+                        return selected ? `${selected.display_id} - ${selected.title}` : 'Select estimate (optional)';
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None (unlinked)</SelectItem>

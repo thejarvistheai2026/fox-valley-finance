@@ -1003,10 +1003,16 @@ function ContractVendorLayout({
                                 className="h-6 w-6 p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // View estimate - expand row
-                                  setExpandedEstimate(estimate.id);
+                                  // Find document attached to this estimate
+                                  const estimateDoc = _documents.find((d: Document) => d.estimate_id === estimate.id);
+                                  if (estimateDoc?.storage_path) {
+                                    window.open(getDocumentPublicUrl(estimateDoc.storage_path), '_blank');
+                                  } else {
+                                    // No document - expand row to show details
+                                    setExpandedEstimate(estimate.id);
+                                  }
                                 }}
-                                title="View estimate"
+                                title={_documents.find((d: Document) => d.estimate_id === estimate.id)?.storage_path ? "View attached document" : "View estimate"}
                               >
                                 <Eye className="h-3 w-3" />
                               </Button>
