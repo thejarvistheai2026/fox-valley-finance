@@ -29,8 +29,6 @@ import {
   getDashboardSummary,
   getReceipts,
   getAllDocuments,
-  generateCSVReceipts,
-  downloadCSV,
   getDocumentViewUrl,
   getDocumentPublicUrl,
   downloadDocument,
@@ -87,11 +85,6 @@ export function DashboardPage() {
     fetchData();
   }, [dateRange]);
   
-  const handleExport = () => {
-    const csv = generateCSVReceipts(recentReceipts);
-    downloadCSV(csv, `receipts-${dateRange.label.replace(/\s+/g, '-').toLowerCase()}.csv`);
-  };
-
   const handleViewDocument = async (storagePath: string, fileType: string) => {
     // Images use /render/image/public/, PDFs use signed URLs
     const isImage = fileType?.includes('image') || storagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
@@ -156,10 +149,6 @@ export function DashboardPage() {
 
         <div className="flex items-center gap-3">
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
         </div>
       </div>
       

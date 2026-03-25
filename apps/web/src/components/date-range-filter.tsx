@@ -43,7 +43,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Select date range" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent side="bottom">
         {DATE_RANGES.map((range) => (
           <SelectItem key={range.label} value={range.label}>
             {range.label}

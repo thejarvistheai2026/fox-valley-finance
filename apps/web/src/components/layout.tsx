@@ -8,8 +8,10 @@ import {
   Home,
   LogOut,
   User,
-  FileText
+  FileText,
+  Download
 } from 'lucide-react';
+import { getReceipts, generateCSVReceipts, downloadCSV } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -18,7 +20,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useState, useEffect } from 'react';
-import { getReceipts } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
 
@@ -102,7 +103,24 @@ function SidebarContent({ inboxCount, user, onLogout }: { inboxCount: number; us
               <p className="text-sm font-medium truncate">{user?.email || 'Guest'}</p>
               <p className="text-xs text-muted-foreground">Signed in</p>
             </div>
-            <div className="p-2">
+            <div className="p-2 space-y-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3"
+                onClick={async () => {
+                  try {
+                    const receipts = await getReceipts();
+                    const csv = generateCSVReceipts(receipts);
+                    downloadCSV(csv, `receipts-export-${new Date().toISOString().split('T')[0]}.csv`);
+                  } catch (err) {
+                    console.error('Export failed:', err);
+                    alert('Failed to export receipts');
+                  }
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Export Receipts
+              </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
