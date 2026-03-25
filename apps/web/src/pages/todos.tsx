@@ -63,6 +63,8 @@ function getMonthLabel(monthKey: string): string {
   return format(date, 'MMMM yyyy');
 }
 
+const STORAGE_KEY = 'fox-valley-todos';
+
 export function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,49 +77,26 @@ export function TodosPage() {
     is_milestone: false,
   });
 
-  // Mock data for now - replace with actual API calls
+  // Load todos from localStorage on mount
   useEffect(() => {
-    const mockTodos: Todo[] = [
-      {
-        id: '1',
-        project_id: 'default',
-        title: 'Call plumber about bathroom fixtures',
-        description: 'Get quotes for new shower and sink',
-        is_completed: false,
-        is_milestone: false,
-        display_id: 'TODO-001',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        project_id: 'default',
-        title: 'Order windows',
-        description: 'Finalize window measurements and place order',
-        due_date: '2026-04-15',
-        is_completed: false,
-        is_milestone: true,
-        display_id: 'TODO-002',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: '3',
-        project_id: 'default',
-        title: 'Schedule electrician',
-        description: 'Book for rough-in inspection',
-        due_date: '2026-04-20',
-        is_completed: false,
-        is_milestone: false,
-        display_id: 'TODO-003',
-        created_at: new Date().toISOString(),
-      },
-    ];
-
-    // Simulate loading
-    setTimeout(() => {
-      setTodos(mockTodos);
-      setLoading(false);
-    }, 500);
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setTodos(parsed);
+      } catch (e) {
+        console.error('Failed to parse todos:', e);
+      }
+    }
+    setLoading(false);
   }, []);
+
+  // Save todos to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    }
+  }, [todos, loading]);
 
   const { undated, byMonth } = groupTodosByMonth(todos);
 
