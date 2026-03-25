@@ -1,11 +1,11 @@
--- Migration: Update dashboard summary to track draft + active vs active-only estimates
--- Description: Adds current_total_estimate field for estimates that are only 'active' (not draft)
+-- Migration: Fix dashboard function overloading issue
+-- Description: Drop all existing get_dashboard_summary functions and recreate with single signature
 
--- Drop all existing versions of the function to avoid overloading conflicts
+-- Drop all versions of the function
 DROP FUNCTION IF EXISTS public.get_dashboard_summary(jsonb);
 DROP FUNCTION IF EXISTS public.get_dashboard_summary(DATE, DATE);
 
--- Dashboard summary with separate totals for draft+active vs active-only
+-- Recreate the function with draft+active and active-only totals
 CREATE OR REPLACE FUNCTION public.get_dashboard_summary(
     p_start_date DATE DEFAULT NULL,
     p_end_date DATE DEFAULT NULL
