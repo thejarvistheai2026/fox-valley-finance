@@ -82,6 +82,23 @@ export function VendorDetailPage() {
     fetchVendorData();
   }, [id]);
 
+  // Fetch document when viewing a receipt
+  useEffect(() => {
+    async function fetchReceiptDocument() {
+      if (selectedReceipt && vendor) {
+        try {
+          const docs = await getDocuments(vendor.id);
+          const doc = docs.find(d => d.receipt_id === selectedReceipt.id);
+          setReceiptDocument(doc || null);
+        } catch (err) {
+          console.error('Failed to fetch receipt document:', err);
+          setReceiptDocument(null);
+        }
+      }
+    }
+    fetchReceiptDocument();
+  }, [selectedReceipt, vendor, receiptDialogOpen]);
+
   const handleUpdateVendor = async (data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => {
     if (!vendor) return;
     try {
