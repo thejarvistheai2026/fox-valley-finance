@@ -32,7 +32,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -382,17 +382,42 @@ export function VendorDetailPage() {
     setDocuments(docsData);
   };
 
-  const handleViewDocument = (storagePath: string) => {
-    // Use public URL for images (works with /render/image/public/)
-    const imageUrl = getDocumentPublicUrl(storagePath);
-    window.open(imageUrl, '_blank');
+  const handleViewDocument = async (storagePath: string, fileType: string) => {
+    // Images use /render/image/public/, PDFs use signed URLs
+    const isImage = fileType?.includes('image') || storagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+    if (isImage) {
+      const imageUrl = getDocumentPublicUrl(storagePath);
+      window.open(imageUrl, '_blank');
+    } else {
+      // PDFs need signed URLs
+      try {
+        const signedUrl = await getDocumentViewUrl(storagePath);
+        window.open(signedUrl, '_blank');
+      } catch (err) {
+        console.error('Failed to get document URL:', err);
+        alert('Failed to open document');
+      }
+    }
   };
 
-  const handleDownloadDocument = (storagePath: string, fileName: string) => {
-    // Use public URL for downloads (works with /render/image/public/)
-    const imageUrl = getDocumentPublicUrl(storagePath);
+  const handleDownloadDocument = async (storagePath: string, fileName: string, fileType: string) => {
+    // Images use /render/image/public/, PDFs use signed URLs
+    const isImage = fileType?.includes('image') || storagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+    let url: string;
+    if (isImage) {
+      url = getDocumentPublicUrl(storagePath);
+    } else {
+      // PDFs need signed URLs
+      try {
+        url = await getDocumentViewUrl(storagePath);
+      } catch (err) {
+        console.error('Failed to get document URL:', err);
+        alert('Failed to download document');
+        return;
+      }
+    }
     const link = document.createElement('a');
-    link.href = imageUrl;
+    link.href = url;
     link.download = fileName;
     document.body.appendChild(link);
     link.click();
@@ -713,7 +738,7 @@ export function VendorDetailPage() {
                   <div className="flex gap-2 mt-4 pt-3 border-t">
                     {doc.storage_path ? (
                       <button
-                        onClick={() => handleViewDocument(doc.storage_path)}
+                        onClick={() => handleViewDocument(doc.storage_path, doc.file_type)}
                         className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
@@ -726,7 +751,7 @@ export function VendorDetailPage() {
                     )}
                     {doc.storage_path && (
                       <button
-                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
+                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name, doc.file_type)}
                         className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         title="Download"
                       >
@@ -856,14 +881,14 @@ export function VendorDetailPage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => handleViewDocument(receiptDocument.storage_path)}
+                      onClick={() => handleViewDocument(receiptDocument.storage_path, receiptDocument.file_type)}
                       className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
                     </button>
                     <button
-                      onClick={() => handleDownloadDocument(receiptDocument.storage_path, receiptDocument.display_name)}
+                      onClick={() => handleDownloadDocument(receiptDocument.storage_path, receiptDocument.display_name, receiptDocument.file_type)}
                       className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                       title="Download"
                     >
@@ -1040,13 +1065,26 @@ function ContractVendorLayout({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
                                   // Find document attached to this estimate
                                   const estimateDoc = _documents.find((d: Document) => d.estimate_id === estimate.id);
                                   if (estimateDoc?.storage_path) {
-                                    const imageUrl = getDocumentPublicUrl(estimateDoc.storage_path);
-                                    window.open(imageUrl, '_blank');
+                                    // Images use /render/image/public/, PDFs use signed URLs
+                                    const isImage = estimateDoc.file_type?.includes('image') || estimateDoc.storage_path.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                                    if (isImage) {
+                                      const imageUrl = getDocumentPublicUrl(estimateDoc.storage_path);
+                                      window.open(imageUrl, '_blank');
+                                    } else {
+                                      // PDFs need signed URLs
+                                      try {
+                                        const signedUrl = await getDocumentViewUrl(estimateDoc.storage_path);
+                                        window.open(signedUrl, '_blank');
+                                      } catch (err) {
+                                        console.error('Failed to get document URL:', err);
+                                        alert('Failed to open document');
+                                      }
+                                    }
                                   } else {
                                     // No document - expand row to show details
                                     setExpandedEstimate(estimate.id);
