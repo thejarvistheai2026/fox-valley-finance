@@ -47,6 +47,8 @@ export function VendorDetailPage() {
   const [receiptDocument, setReceiptDocument] = useState<Document | null>(null);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [documentUploadOpen, setDocumentUploadOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchVendorData() {
@@ -326,18 +328,25 @@ export function VendorDetailPage() {
     }
   };
 
-  const handleDeleteDocument = async (documentId: string) => {
-    if (!vendor) return;
-    if (!confirm('Are you sure you want to delete this document?')) return;
+  const handleDeleteDocument = (documentId: string) => {
+    setDocumentToDelete(documentId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!vendor || !documentToDelete) return;
 
     try {
-      await deleteDocument(documentId);
+      await deleteDocument(documentToDelete);
       // Refresh documents
       const docsData = await getDocuments(vendor.id);
       setDocuments(docsData);
     } catch (err) {
       console.error('Failed to delete document:', err);
       alert('Failed to delete document: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDocumentToDelete(null);
     }
   };
 
@@ -664,14 +673,13 @@ export function VendorDetailPage() {
                         <Download className="h-4 w-4" />
                       </a>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
+                    <button
                       onClick={() => handleDeleteDocument(doc.id)}
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-destructive hover:text-destructive-foreground transition-colors text-destructive"
+                      title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                 </div>
               )})}
@@ -690,6 +698,26 @@ export function VendorDetailPage() {
           onUploadComplete={handleDocumentsUpdated}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteDocument}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Receipt Detail Dialog */}
       <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>
