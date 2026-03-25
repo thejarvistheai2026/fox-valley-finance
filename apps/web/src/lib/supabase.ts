@@ -368,18 +368,11 @@ export async function getDocumentViewUrl(storagePath: string): Promise<string> {
   return data.signedUrl;
 }
 
-// Legacy function - now uses signed URLs for all file types
-export async function getDocumentPublicUrl(storagePath: string): Promise<string> {
-  // For all files (images and PDFs), use signed URL for consistent access
-  const { data, error } = await supabase.storage
-    .from('documents')
-    .createSignedUrl(storagePath, 3600); // 1 hour expiry
-
-  if (error) {
-    console.error('Error creating signed URL:', error);
-    throw error;
-  }
-  return data.signedUrl;
+// Get public URL for a document (uses render/image endpoint which works for public buckets)
+export function getDocumentPublicUrl(storagePath: string): string {
+  // Use the render/image endpoint which actually works for public access
+  const supabaseUrl = 'https://nhngmcypqwfuvgzewrij.supabase.co';
+  return `${supabaseUrl}/storage/v1/render/image/public/documents/${storagePath}`;
 }
 
 // Create signed URL for secure document access (expires in 1 hour)
