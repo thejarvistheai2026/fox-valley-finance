@@ -14,8 +14,16 @@ import {
   Receipt,
   Calculator,
   Download,
-  StickyNote
+  StickyNote,
+  X
 } from 'lucide-react';
+
+const DOCUMENT_TAGS = [
+  { value: 'estimate', label: 'Estimate', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  { value: 'receipt', label: 'Receipt', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  { value: 'forms', label: 'Forms', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  { value: 'core', label: 'Core', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+];
 import {
   Dialog,
   DialogContent,
@@ -34,6 +42,7 @@ export function DocumentsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
@@ -122,12 +131,32 @@ export function DocumentsPage() {
     return { label: 'Vendor Doc', icon: Building2, color: 'text-emerald-500' };
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.original_file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.vendor_ref?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    getVendorName(doc.vendor_id).toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const toggleTag = (tagValue: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tagValue)
+        ? prev.filter(t => t !== tagValue)
+        : [...prev, tagValue]
+    );
+  };
+
+  const clearTagFilters = () => {
+    setSelectedTags([]);
+  };
+
+  const filteredDocuments = documents.filter(doc => {
+    // Search filter
+    const matchesSearch = searchQuery === '' ||
+      doc.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.original_file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.vendor_ref?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      getVendorName(doc.vendor_id).toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Tag filter - document must have ALL selected tags
+    const matchesTags = selectedTags.length === 0 ||
+      selectedTags.every(tag => doc.tags?.includes(tag));
+
+    return matchesSearch && matchesTags;
+  });
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -160,6 +189,33 @@ export function DocumentsPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 h-11"
         />
+      </div>
+
+      {/* Tag Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground mr-1">Filter by tags:</span>
+        {DOCUMENT_TAGS.map((tag) => (
+          <button
+            key={tag.value}
+            onClick={() => toggleTag(tag.value)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+              selectedTags.includes(tag.value)
+                ? tag.color
+                : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80'
+            }`}
+          >
+            {tag.label}
+          </button>
+        ))}
+        {selectedTags.length > 0 && (
+          <button
+            onClick={clearTagFilters}
+            className="flex items-center gap-1 px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-3 w-3" />
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Documents Grid */}
@@ -230,11 +286,23 @@ export function DocumentsPage() {
                       <p className="text-sm text-muted-foreground truncate">
                         {getVendorName(doc.vendor_id)}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
                         <Badge variant="outline" className="text-xs">
                           {docType.label}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        {doc.tags?.map((tag) => {
+                          const tagConfig = DOCUMENT_TAGS.find(t => t.value === tag);
+                          if (!tagConfig) return null;
+                          return (
+                            <Badge
+                              key={tag}
+                              className={`text-xs ${tagConfig.color} border`}
+                            >
+                              {tagConfig.label}
+                            </Badge>
+                          );
+                        })}
+                        <span className="text-xs text-muted-foreground ml-auto">
                           {formatFileSize(doc.file_size_bytes)}
                         </span>
                       </div>

@@ -21,7 +21,15 @@ import {
 import { Upload, FileText, X } from 'lucide-react';
 import { createDocument, uploadDocument } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import type { Vendor } from '@/types';
+
+const DOCUMENT_TAGS = [
+  { value: 'estimate', label: 'Estimate', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
+  { value: 'receipt', label: 'Receipt', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
+  { value: 'forms', label: 'Forms', color: 'bg-purple-100 text-purple-700 hover:bg-purple-200' },
+  { value: 'core', label: 'Core', color: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
+];
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -45,9 +53,18 @@ export function DocumentUploadDialog({
   const [displayName, setDisplayName] = useState('');
   const [vendorRef, setVendorRef] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleTag = (tagValue: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tagValue)
+        ? prev.filter(t => t !== tagValue)
+        : [...prev, tagValue]
+    );
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -117,7 +134,7 @@ export function DocumentUploadDialog({
         file_size_bytes: selectedFile.size,
         vendor_ref: vendorRef || undefined,
         notes: notes || undefined,
-        tags: []
+        tags: selectedTags
       });
 
       // Reset form
@@ -126,6 +143,7 @@ export function DocumentUploadDialog({
       setDisplayName('');
       setVendorRef('');
       setNotes('');
+      setSelectedTags([]);
 
       onOpenChange(false);
       onUploadComplete();
@@ -274,6 +292,27 @@ export function DocumentUploadDialog({
                   rows={3}
                   className="resize-none"
                 />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label>Tags</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DOCUMENT_TAGS.map((tag) => (
+                    <button
+                      key={tag.value}
+                      type="button"
+                      onClick={() => toggleTag(tag.value)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+                        selectedTags.includes(tag.value)
+                          ? tag.color
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
