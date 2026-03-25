@@ -32,7 +32,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -382,6 +382,31 @@ export function VendorDetailPage() {
     setDocuments(docsData);
   };
 
+  const handleViewDocument = async (storagePath: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      window.open(signedUrl, '_blank');
+    } catch (err) {
+      console.error('Failed to get document URL:', err);
+      alert('Failed to open document');
+    }
+  };
+
+  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document');
+    }
+  };
+
   const getLinkedReceipts = (estimateId: string) => {
     return receipts.filter(r => r.estimate_id === estimateId);
   };
@@ -660,9 +685,7 @@ export function VendorDetailPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {documents.map((doc) => {
-                const docUrl = doc.storage_path ? getDocumentPublicUrl(doc.storage_path) : null;
-                return (
+              {documents.map((doc) => (
                 <div
                   key={doc.id}
                   className="border rounded-xl p-4 hover:border-primary/50 hover:shadow-sm transition-all bg-card"
@@ -696,30 +719,27 @@ export function VendorDetailPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4 pt-3 border-t">
-                    {docUrl ? (
-                      <a
-                        href={docUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    {doc.storage_path ? (
+                      <button
+                        onClick={() => handleViewDocument(doc.storage_path)}
                         className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         <ExternalLink className="h-4 w-4 mr-1" />
                         View
-                      </a>
+                      </button>
                     ) : (
                       <span className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-muted text-muted-foreground cursor-not-allowed">
                         No file attached
                       </span>
                     )}
-                    {docUrl && (
-                      <a
-                        href={docUrl}
-                        download={doc.display_name}
+                    {doc.storage_path && (
+                      <button
+                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                         className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         title="Download"
                       >
                         <Download className="h-4 w-4" />
-                      </a>
+                      </button>
                     )}
                     <button
                       onClick={() => handleDeleteDocument(doc.id)}
@@ -730,7 +750,7 @@ export function VendorDetailPage() {
                     </button>
                   </div>
                 </div>
-              )})}
+              ))}
             </div>
           )}
         </CardContent>
@@ -843,23 +863,20 @@ export function VendorDetailPage() {
                         {formatFileSize(receiptDocument.file_size_bytes)}
                       </p>
                     </div>
-                    <a
-                      href={getDocumentPublicUrl(receiptDocument.storage_path)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => handleViewDocument(receiptDocument.storage_path)}
                       className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
-                    </a>
-                    <a
-                      href={getDocumentPublicUrl(receiptDocument.storage_path)}
-                      download={receiptDocument.display_name}
+                    </button>
+                    <button
+                      onClick={() => handleDownloadDocument(receiptDocument.storage_path, receiptDocument.display_name)}
                       className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                       title="Download"
                     >
                       <Download className="h-4 w-4" />
-                    </a>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -1031,12 +1048,18 @@ function ContractVendorLayout({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
                                   // Find document attached to this estimate
                                   const estimateDoc = _documents.find((d: Document) => d.estimate_id === estimate.id);
                                   if (estimateDoc?.storage_path) {
-                                    window.open(getDocumentPublicUrl(estimateDoc.storage_path), '_blank');
+                                    try {
+                                      const signedUrl = await getDocumentViewUrl(estimateDoc.storage_path);
+                                      window.open(signedUrl, '_blank');
+                                    } catch (err) {
+                                      console.error('Failed to get document URL:', err);
+                                      alert('Failed to open document');
+                                    }
                                   } else {
                                     // No document - expand row to show details
                                     setExpandedEstimate(estimate.id);

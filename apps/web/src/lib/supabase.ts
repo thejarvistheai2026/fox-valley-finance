@@ -353,9 +353,24 @@ export async function deleteDocument(id: string) {
   if (error) throw error;
 }
 
-// Get public URL for a document
+// Get URL for viewing a document (uses signed URL for all file types)
+export async function getDocumentViewUrl(storagePath: string): Promise<string> {
+  // For PDFs and other non-image files, we need a signed URL
+  // Images can use public URL, but PDFs require signed URLs
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(storagePath, 3600); // 1 hour expiry
+
+  if (error) {
+    console.error('Error creating signed URL:', error);
+    throw error;
+  }
+  return data.signedUrl;
+}
+
+// Legacy function - kept for backwards compatibility but prefer getDocumentViewUrl
 export function getDocumentPublicUrl(storagePath: string): string {
-  // Use the render/image endpoint which actually works for public access
+  // This only works for images, not PDFs
   const supabaseUrl = 'https://nhngmcypqwfuvgzewrij.supabase.co';
   return `${supabaseUrl}/storage/v1/render/image/public/documents/${storagePath}`;
 }

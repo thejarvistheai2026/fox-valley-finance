@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getAllDocuments, getDocumentPublicUrl, deleteDocument, getVendors } from '@/lib/supabase';
+import { getAllDocuments, getDocumentViewUrl, deleteDocument, getVendors } from '@/lib/supabase';
 import type { Document, Vendor } from '@/types';
 import { format } from 'date-fns';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
@@ -62,7 +62,30 @@ export function DocumentsPage() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDeleteDocument = async () => {
+  const handleViewDocument = async (storagePath: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      window.open(signedUrl, '_blank');
+    } catch (err) {
+      console.error('Failed to get document URL:', err);
+      alert('Failed to open document');
+    }
+  };
+
+  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
+    try {
+      const signedUrl = await getDocumentViewUrl(storagePath);
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document');
+    }
+  };
     if (!documentToDelete) return;
     try {
       await deleteDocument(documentToDelete);
@@ -211,7 +234,7 @@ export function DocumentsPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => window.open(getDocumentPublicUrl(doc.storage_path), '_blank')}
+                      onClick={() => handleViewDocument(doc.storage_path)}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View
@@ -219,14 +242,7 @@ export function DocumentsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = getDocumentPublicUrl(doc.storage_path);
-                        link.download = doc.display_name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
+                      onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                       title="Download"
                     >
                       <Download className="h-4 w-4" />
