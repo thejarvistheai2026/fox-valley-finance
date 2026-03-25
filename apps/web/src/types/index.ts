@@ -100,7 +100,8 @@ export interface Document {
 }
 
 export interface DashboardSummary {
-  total_estimated: number;
+  total_estimated: number;           // draft + in progress
+  current_total_estimate: number;  // in progress only
   total_paid: number;
   total_outstanding: number;
   total_gst: number;
