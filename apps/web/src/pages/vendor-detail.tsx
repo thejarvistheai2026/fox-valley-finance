@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Force redeploy
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -1200,17 +1200,17 @@ function ContractVendorLayout({
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
+              <table className="w-full table-fixed">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="text-left py-2 px-4 font-medium">ID</th>
-                    <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
-                    <th className="text-left py-2 px-4 font-medium">Date</th>
-                    <th className="text-left py-2 px-4 font-medium">Payment Type</th>
-                    <th className="text-right py-2 px-4 font-medium">Total</th>
-                    <th className="text-right py-2 px-4 font-medium">HST</th>
+                    <th className="text-left py-2 px-4 font-medium w-20">ID</th>
+                    <th className="text-left py-2 px-4 font-medium w-24">Vendor Ref</th>
+                    <th className="text-left py-2 px-4 font-medium w-28">Date</th>
+                    <th className="text-left py-2 px-4 font-medium w-32">Payment Type</th>
+                    <th className="text-right py-2 px-4 font-medium w-24">Total</th>
+                    <th className="text-right py-2 px-4 font-medium w-20">HST</th>
                     <th className="text-left py-2 px-4 font-medium">Notes</th>
-                    <th className="text-center py-2 px-4 font-medium">Status</th>
+                    <th className="text-center py-2 px-4 font-medium w-20">Status</th>
                     <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                   </tr>
                 </thead>
@@ -1333,17 +1333,17 @@ function RetailVendorLayout({
           </p>
         ) : (
           <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-muted">
                 <tr>
-                  <th className="text-left py-2 px-4 font-medium">ID</th>
-                  <th className="text-left py-2 px-4 font-medium">Vendor Ref</th>
-                  <th className="text-left py-2 px-4 font-medium">Date</th>
-                  <th className="text-right py-2 px-4 font-medium">Total</th>
-                  <th className="text-right py-2 px-4 font-medium">HST</th>
-                  <th className="text-left py-2 px-4 font-medium">Tags</th>
+                  <th className="text-left py-2 px-4 font-medium w-20">ID</th>
+                  <th className="text-left py-2 px-4 font-medium w-24">Vendor Ref</th>
+                  <th className="text-left py-2 px-4 font-medium w-28">Date</th>
+                  <th className="text-right py-2 px-4 font-medium w-24">Total</th>
+                  <th className="text-right py-2 px-4 font-medium w-20">HST</th>
+                  <th className="text-left py-2 px-4 font-medium w-32">Tags</th>
                   <th className="text-left py-2 px-4 font-medium">Notes</th>
-                  <th className="text-center py-2 px-4 font-medium">Status</th>
+                  <th className="text-center py-2 px-4 font-medium w-20">Status</th>
                   <th className="text-center py-2 px-4 font-medium w-24">Actions</th>
                 </tr>
               </thead>
