@@ -27,7 +27,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Receipt, CalendarIcon, X, Upload } from 'lucide-react';
+import { Receipt, CalendarIcon, X } from 'lucide-react';
+import { DocumentUpload } from './document-upload';
 import type { Receipt as ReceiptType, Estimate, TaxProvince } from '@/types';
 import { PAYMENT_TYPES } from '@/types';
 
@@ -372,29 +373,11 @@ export function ReceiptFormDialog({
             </div>
 
           {/* Section: Document Upload */}
-          <div className="space-y-4 pt-4 border-t">
-            <div className="space-y-2">
-              <Label>Attach Document</Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center bg-muted/30 hover:bg-muted/50 transition-colors">
-                <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">
-                  {selectedFile ? selectedFile.name : 'Drag and drop or click to upload'}
-                </p>
-                <p className="text-xs text-muted-foreground mb-4">PDF, JPG, or PNG up to 10MB</p>
-                <Input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <Button type="button" variant="outline" size="sm" className="h-9 px-4">
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    Select File
-                  </label>
-                </Button>
-              </div>
-            </div>
+          <div className="pt-4 border-t">
+            <DocumentUpload
+              onFileSelect={setSelectedFile}
+              selectedFile={selectedFile}
+            />
           </div>
 
           <DialogFooter className="gap-3 pt-4">
