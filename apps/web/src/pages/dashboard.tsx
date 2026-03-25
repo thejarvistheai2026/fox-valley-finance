@@ -12,7 +12,8 @@ import {
   Trash2,
   Eye,
   FileText,
-  ArrowRight
+  ArrowRight,
+  StickyNote
 } from 'lucide-react';
 import {
   Dialog,
@@ -46,6 +47,8 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedDocumentForNotes, setSelectedDocumentForNotes] = useState<Document | null>(null);
   
   useEffect(() => {
     async function fetchData() {
@@ -115,6 +118,11 @@ export function DashboardPage() {
   const handleDeleteDocument = (id: string) => {
     setDocumentToDelete(id);
     setDeleteConfirmOpen(true);
+  };
+
+  const handleViewNotes = (doc: Document) => {
+    setSelectedDocumentForNotes(doc);
+    setNotesDialogOpen(true);
   };
 
   const confirmDeleteDocument = async () => {
@@ -327,6 +335,15 @@ export function DashboardPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
+                        onClick={() => handleViewNotes(doc)}
+                        title="View notes"
+                      >
+                        <StickyNote className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
                         onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                         title="Download document"
                       >
@@ -365,6 +382,30 @@ export function DashboardPage() {
             </Button>
             <Button variant="destructive" onClick={confirmDeleteDocument}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Document Notes</DialogTitle>
+            <DialogDescription>
+              {selectedDocumentForNotes?.display_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedDocumentForNotes?.notes ? (
+              <p className="text-sm text-foreground whitespace-pre-wrap">{selectedDocumentForNotes.notes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No notes added to this document.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

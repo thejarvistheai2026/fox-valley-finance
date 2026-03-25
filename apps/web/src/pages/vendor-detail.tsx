@@ -19,6 +19,7 @@ import {
   Eye,
   Download,
   Globe,
+  StickyNote
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,6 +57,8 @@ export function VendorDetailPage() {
   const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
   const [unlinkReceiptConfirmOpen, setUnlinkReceiptConfirmOpen] = useState(false);
   const [receiptToUnlink, setReceiptToUnlink] = useState<string | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedDocumentForNotes, setSelectedDocumentForNotes] = useState<Document | null>(null);
 
   useEffect(() => {
     async function fetchVendorData() {
@@ -407,6 +410,11 @@ export function VendorDetailPage() {
     if (!vendor) return;
     const docsData = await getDocuments(vendor.id);
     setDocuments(docsData);
+  };
+
+  const handleViewNotes = (doc: Document) => {
+    setSelectedDocumentForNotes(doc);
+    setNotesDialogOpen(true);
   };
 
   const handleViewDocument = async (storagePath: string, fileType: string) => {
@@ -762,6 +770,13 @@ export function VendorDetailPage() {
                         No file attached
                       </span>
                     )}
+                    <button
+                      onClick={() => handleViewNotes(doc)}
+                      className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                      title="Notes"
+                    >
+                      <StickyNote className="h-4 w-4" />
+                    </button>
                     {doc.storage_path && (
                       <button
                         onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
@@ -812,6 +827,30 @@ export function VendorDetailPage() {
             </Button>
             <Button variant="destructive" onClick={confirmDeleteDocument}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Document Notes</DialogTitle>
+            <DialogDescription>
+              {selectedDocumentForNotes?.display_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedDocumentForNotes?.notes ? (
+              <p className="text-sm text-foreground whitespace-pre-wrap">{selectedDocumentForNotes.notes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No notes added to this document.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
