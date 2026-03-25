@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getAllDocuments, getDocumentViewUrl, getDocumentPublicUrl, deleteDocument, getVendors } from '@/lib/supabase';
+import { getAllDocuments, getDocumentViewUrl, getDocumentPublicUrl, downloadDocument, deleteDocument, getVendors } from '@/lib/supabase';
 import type { Document, Vendor } from '@/types';
 import { format } from 'date-fns';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
@@ -80,28 +80,13 @@ export function DocumentsPage() {
     }
   };
 
-  const handleDownloadDocument = async (storagePath: string, fileName: string, fileType: string) => {
-    // Images use /render/image/public/, PDFs use signed URLs
-    const isImage = fileType?.includes('image') || storagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-    let url: string;
-    if (isImage) {
-      url = getDocumentPublicUrl(storagePath);
-    } else {
-      // PDFs need signed URLs
-      try {
-        url = await getDocumentViewUrl(storagePath);
-      } catch (err) {
-        console.error('Failed to get document URL:', err);
-        alert('Failed to download document');
-        return;
-      }
+  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
+    try {
+      await downloadDocument(storagePath, fileName);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document');
     }
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const confirmDeleteDocument = async () => {
@@ -261,7 +246,7 @@ export function DocumentsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name, doc.file_type)}
+                      onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                       title="Download"
                     >
                       <Download className="h-4 w-4" />

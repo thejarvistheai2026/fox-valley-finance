@@ -375,6 +375,29 @@ export function getDocumentPublicUrl(storagePath: string): string {
   return `${supabaseUrl}/storage/v1/render/image/public/documents/${storagePath}`;
 }
 
+// Download document by fetching as blob and triggering download
+export async function downloadDocument(storagePath: string, fileName: string): Promise<void> {
+  // Fetch the file as a blob
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .download(storagePath);
+
+  if (error) {
+    console.error('Error downloading document:', error);
+    throw error;
+  }
+
+  // Create a blob URL and trigger download
+  const blobUrl = URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(blobUrl);
+}
+
 // Create signed URL for secure document access (expires in 1 hour)
 export async function createSignedDocumentUrl(storagePath: string): Promise<string> {
   console.log('Creating signed URL for:', storagePath);

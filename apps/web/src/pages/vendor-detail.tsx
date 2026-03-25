@@ -32,7 +32,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, getDocumentPublicUrl, downloadDocument, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -400,28 +400,13 @@ export function VendorDetailPage() {
     }
   };
 
-  const handleDownloadDocument = async (storagePath: string, fileName: string, fileType: string) => {
-    // Images use /render/image/public/, PDFs use signed URLs
-    const isImage = fileType?.includes('image') || storagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-    let url: string;
-    if (isImage) {
-      url = getDocumentPublicUrl(storagePath);
-    } else {
-      // PDFs need signed URLs
-      try {
-        url = await getDocumentViewUrl(storagePath);
-      } catch (err) {
-        console.error('Failed to get document URL:', err);
-        alert('Failed to download document');
-        return;
-      }
+  const handleDownloadDocument = async (storagePath: string, fileName: string) => {
+    try {
+      await downloadDocument(storagePath, fileName);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document');
     }
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const getLinkedReceipts = (estimateId: string) => {
@@ -751,7 +736,7 @@ export function VendorDetailPage() {
                     )}
                     {doc.storage_path && (
                       <button
-                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name, doc.file_type)}
+                        onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                         className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         title="Download"
                       >
@@ -888,7 +873,7 @@ export function VendorDetailPage() {
                       View
                     </button>
                     <button
-                      onClick={() => handleDownloadDocument(receiptDocument.storage_path, receiptDocument.display_name, receiptDocument.file_type)}
+                      onClick={() => handleDownloadDocument(receiptDocument.storage_path, receiptDocument.display_name)}
                       className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                       title="Download"
                     >
