@@ -615,8 +615,9 @@ export function VendorDetailPage() {
       {/* Financial Summary Bar */}
       {(() => {
         // Calculate totals dynamically from estimates and receipts
+        // Only count estimates that are 'active' (In Progress) towards totals
         const totalEstimated = vendor.type === 'contract'
-          ? estimates.reduce((sum, e) => sum + (e.estimated_total || 0), 0)
+          ? estimates.filter(e => e.status === 'active').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
           : 0;
         const totalPaid = receipts.reduce((sum, r) => sum + (r.total || 0), 0);
         const totalTax = receipts.reduce((sum, r) => sum + (r.tax_total || 0), 0);
@@ -1122,15 +1123,16 @@ function ContractVendorLayout({
                               <Badge
                                 variant={estimate.status === 'active' ? 'default' : 'secondary'}
                                 className={
+                                  estimate.status === 'draft' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
                                   estimate.status === 'active' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
-                                  estimate.status === 'revised' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
                                   estimate.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
                                   'bg-red-100 text-red-800 hover:bg-red-100'
                                 }
                               >
-                                {estimate.status === 'active' ? 'In Progress' :
+                                {estimate.status === 'draft' ? 'Draft' :
+                                  estimate.status === 'active' ? 'In Progress' :
                                   estimate.status === 'completed' ? 'Completed' :
-                                  estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
+                                  'Declined'}
                               </Badge>
                             </div>
                           </td>
