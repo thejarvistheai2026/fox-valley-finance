@@ -287,6 +287,17 @@ export async function getAllDocuments(options?: { limit?: number }) {
   return data as Document[];
 }
 
+export async function getDocumentByReceiptId(receiptId: string) {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('receipt_id', receiptId)
+    .single();
+
+  if (error) return null;
+  return data as Document;
+}
+
 export async function createDocument(document: Omit<Document, 'id' | 'display_id' | 'created_at'>) {
   const { data, error } = await supabase
     .from('documents')

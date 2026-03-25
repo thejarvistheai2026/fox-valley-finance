@@ -32,7 +32,7 @@ import { VendorFormDialog } from '@/components/vendor-form';
 import { EstimateFormDialog } from '@/components/estimate-form';
 import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
-import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
+import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentPublicUrl, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
 
 
@@ -85,11 +85,10 @@ export function VendorDetailPage() {
   // Fetch document when viewing a receipt
   useEffect(() => {
     async function fetchReceiptDocument() {
-      if (selectedReceipt && vendor) {
+      if (selectedReceipt) {
         try {
-          const docs = await getDocuments(vendor.id);
-          const doc = docs.find(d => d.receipt_id === selectedReceipt.id);
-          setReceiptDocument(doc || null);
+          const doc = await getDocumentByReceiptId(selectedReceipt.id);
+          setReceiptDocument(doc);
         } catch (err) {
           console.error('Failed to fetch receipt document:', err);
           setReceiptDocument(null);
@@ -97,7 +96,7 @@ export function VendorDetailPage() {
       }
     }
     fetchReceiptDocument();
-  }, [selectedReceipt, vendor, receiptDialogOpen]);
+  }, [selectedReceipt, receiptDialogOpen]);
 
   const handleUpdateVendor = async (data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => {
     if (!vendor) return;
