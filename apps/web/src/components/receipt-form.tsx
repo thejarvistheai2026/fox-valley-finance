@@ -154,8 +154,8 @@ export function ReceiptFormDialog({
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-7xl w-full mx-auto max-h-[95vh] overflow-y-auto p-8">
-        <DialogHeader className="mb-6">
+      <DialogContent className="max-w-7xl w-full mx-auto max-h-[95vh] overflow-y-auto px-12 py-8">
+        <DialogHeader className="mb-6 px-4">
           <DialogTitle className="text-xl">
             {receipt ? 'Edit Receipt' : 'Add New Receipt'}
           </DialogTitle>
@@ -166,7 +166,7 @@ export function ReceiptFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 px-4">
           {/* Section: Basic Info */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Basic Information</h3>
