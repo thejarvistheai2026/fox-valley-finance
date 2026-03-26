@@ -246,11 +246,18 @@ export function VendorDetailPage() {
 
       // If total paid >= estimate total, mark as completed
       if (totalPaid >= estimate.estimated_total && estimate.status !== 'completed') {
-        await updateEstimate(estimateId, { status: 'completed' });
+        // Calculate HST based on the estimate total (13% for Ontario HST)
+        // This represents the tax paid on the completed work
+        const hstAmount = Math.round(estimate.estimated_total * 0.13 * 100) / 100;
+
+        await updateEstimate(estimateId, {
+          status: 'completed',
+          hst_amount: hstAmount
+        });
         // Refresh estimates to reflect the change
         const updatedEstimates = await getEstimates(vendor.id);
         setEstimates(updatedEstimates);
-        console.log(`Estimate ${estimate.display_id} auto-completed: paid ${totalPaid} >= total ${estimate.estimated_total}`);
+        console.log(`Estimate ${estimate.display_id} auto-completed: paid ${totalPaid} >= total ${estimate.estimated_total}, HST: ${hstAmount}`);
       }
     } catch (err) {
       console.error('Failed to check/complete estimate:', err);
@@ -400,9 +407,9 @@ export function VendorDetailPage() {
           const linkedReceipts = await getReceipts({ estimateId });
           const totalPaid = linkedReceipts.reduce((sum, r) => sum + r.total, 0);
 
-          // If total paid is now less than estimate, revert to active
+          // If total paid is now less than estimate, revert to active and clear HST
           if (totalPaid < estimate.estimated_total && estimate.status === 'completed') {
-            await updateEstimate(estimateId, { status: 'active' });
+            await updateEstimate(estimateId, { status: 'active', hst_amount: 0 });
             const updatedEstimates = await getEstimates(vendor.id);
             setEstimates(updatedEstimates);
             console.log(`Estimate ${estimate.display_id} reverted to active: paid ${totalPaid} < total ${estimate.estimated_total}`);
@@ -445,9 +452,9 @@ export function VendorDetailPage() {
           const linkedReceipts = await getReceipts({ estimateId });
           const totalPaid = linkedReceipts.reduce((sum, r) => sum + r.total, 0);
 
-          // If total paid is now less than estimate, revert to active
+          // If total paid is now less than estimate, revert to active and clear HST
           if (totalPaid < estimate.estimated_total && estimate.status === 'completed') {
-            await updateEstimate(estimateId, { status: 'active' });
+            await updateEstimate(estimateId, { status: 'active', hst_amount: 0 });
             const updatedEstimates = await getEstimates(vendor.id);
             setEstimates(updatedEstimates);
             console.log(`Estimate ${estimate.display_id} reverted to active: paid ${totalPaid} < total ${estimate.estimated_total}`);
