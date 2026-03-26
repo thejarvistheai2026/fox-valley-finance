@@ -99,12 +99,24 @@ export function ReceiptFormDialog({
       tags: [],
     },
   });
-  
+
+  // Watch estimate_id to pre-populate vendor_ref when an estimate is selected
+  const selectedEstimateId = useWatch({ control: form.control, name: 'estimate_id' });
+
+  useEffect(() => {
+    if (selectedEstimateId && !receipt) {
+      const selectedEstimate = estimates.find(e => e.id === selectedEstimateId);
+      if (selectedEstimate?.vendor_ref) {
+        form.setValue('vendor_ref', selectedEstimate.vendor_ref);
+      }
+    }
+  }, [selectedEstimateId, estimates, form, receipt]);
+
   // Auto-calculate total when tax amounts change
   const subtotal = useWatch({ control: form.control, name: 'subtotal' });
   const gstAmount = useWatch({ control: form.control, name: 'gst_amount' });
   const pstAmount = useWatch({ control: form.control, name: 'pst_amount' });
-  
+
   useEffect(() => {
     const total = (subtotal || 0) + (gstAmount || 0) + (pstAmount || 0);
     form.setValue('total', total);
