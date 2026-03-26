@@ -207,14 +207,15 @@ export function DocumentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Documents</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             All documents across vendors, estimates, and receipts
           </p>
         </div>
-        <Button onClick={() => setUploadDialogOpen(true)}>
+        <Button onClick={() => setUploadDialogOpen(true)} className="w-full sm:w-auto">
           <Upload className="h-4 w-4 mr-2" />
-          Upload Document
+          <span className="sm:hidden">Upload</span>
+          <span className="hidden sm:inline">Upload Document</span>
         </Button>
       </div>
 
@@ -231,7 +232,8 @@ export function DocumentsPage() {
 
       {/* Tag Filters */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground mr-1">Filter by tags:</span>
+        <span className="text-sm text-muted-foreground mr-1 hidden sm:inline">Filter by tags:</span>
+        <span className="text-sm text-muted-foreground mr-1 sm:hidden">Filter:</span>
         {DOCUMENT_TAGS.map((tag) => (
           <button
             key={tag.value}
@@ -258,7 +260,7 @@ export function DocumentsPage() {
 
       {/* Documents Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="p-5">
@@ -296,7 +298,7 @@ export function DocumentsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredDocuments.map((doc) => {
             const docType = getDocumentType(doc);
             const Icon = docType.icon;
@@ -347,40 +349,42 @@ export function DocumentsPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-4 pt-4 border-t">
+                  <div className="flex gap-1.5 sm:gap-2 mt-4 pt-4 border-t">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 text-xs sm:text-sm"
                       onClick={() => handleViewDocument(doc.storage_path, doc.file_type)}
                     >
-                      <ExternalLink className="h-4 w-4 mr-1" />
+                      <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                       View
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                       onClick={() => handleViewNotes(doc)}
                       title="Notes"
                     >
-                      <StickyNote className="h-4 w-4" />
+                      <StickyNote className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                       onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                       title="Download"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-destructive hover:text-destructive"
                       onClick={() => handleDelete(doc.id)}
                       title="Delete"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
 

@@ -147,21 +147,21 @@ export function DashboardPage() {
         </div>
       )}
       
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Overview of your project finances
           </p>
         </div>
 
-        <div className="flex items-center gap-3 pb-32 -mb-32">
+        <div className="flex items-center gap-3">
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
       </div>
       
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5">
         <SummaryCard
           title="Total - All Estimates"
           value={summary?.total_estimated || 0}
@@ -204,7 +204,7 @@ export function DashboardPage() {
       </div>
       
       {/* Two Column Layout: Recent Activity & Documents */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Activity */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4">
@@ -235,35 +235,35 @@ export function DashboardPage() {
                 recentReceipts.map((receipt) => (
                   <div
                     key={receipt.id}
-                    className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                    className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
-                      <Receipt className="h-5 w-5 text-primary" />
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-all flex-shrink-0">
+                      <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{receipt.vendor?.name}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="font-medium truncate text-sm sm:text-base">{receipt.vendor?.name}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap items-center gap-1 sm:gap-2">
                         {receipt.payment_type && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-muted">{receipt.payment_type}</span>}
-                        <span className="ml-2">{receipt.date}</span>
+                        <span>{receipt.date}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right mr-2">
-                        <div className="font-semibold">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <div className="text-right mr-1 sm:mr-2">
+                        <div className="font-semibold text-sm sm:text-base">
                           <Currency amount={receipt.total} />
                         </div>
-                        <div className="text-xs text-muted-foreground font-medium">
+                        <div className="text-xs text-muted-foreground font-medium hidden sm:block">
                           {receipt.display_id}
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
                         onClick={() => navigate(`/vendors/${receipt.vendor?.display_id}`)}
                         title="Go to vendor"
                       >
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </div>
@@ -306,57 +306,57 @@ export function DashboardPage() {
                 recentDocuments.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                    className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-xl hover:bg-muted/50 transition-colors group"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center group-hover:from-emerald-200 group-hover:to-emerald-100 transition-all">
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center group-hover:from-emerald-200 group-hover:to-emerald-100 transition-all flex-shrink-0">
                       {doc.file_type.includes('pdf') ? (
-                        <FileText className="h-5 w-5 text-red-500" />
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                       ) : (
-                        <FileText className="h-5 w-5 text-blue-500" />
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate" title={doc.display_name}>{doc.display_name}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="font-medium truncate text-sm sm:text-base" title={doc.display_name}>{doc.display_name}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
                         {doc.vendor?.name}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7 sm:h-8 sm:w-8"
                         onClick={() => handleViewDocument(doc.storage_path, doc.file_type)}
                         title="View document"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7 sm:h-8 sm:w-8"
                         onClick={() => handleViewNotes(doc)}
                         title="View notes"
                       >
-                        <StickyNote className="h-4 w-4" />
+                        <StickyNote className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-7 w-7 sm:h-8 sm:w-8"
                         onClick={() => handleDownloadDocument(doc.storage_path, doc.display_name)}
                         title="Download document"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
                         onClick={() => handleDeleteDocument(doc.id)}
                         title="Delete document"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </div>
@@ -440,12 +440,12 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
 
   return (
     <Card className={cn("border shadow-sm hover:shadow-md transition-shadow", variantStyles[variant])}>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <div className="flex items-center gap-3">
-          <div className={cn("p-2.5 rounded-xl", iconStyles[variant])}>
-            <Icon className="h-5 w-5" />
+      <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={cn("p-2 sm:p-2.5 rounded-xl flex-shrink-0", iconStyles[variant])}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          <span className="text-sm font-medium text-muted-foreground">{title}</span>
+          <span className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</span>
         </div>
         {trend && (
           <div className={cn(
@@ -463,13 +463,13 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
       </CardHeader>
       <CardContent className="pt-0">
         {loading ? (
-          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-6 sm:h-8 w-24 sm:w-32" />
         ) : (
           <>
-            <div className="text-3xl font-bold tracking-tight">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
               <Currency amount={value} />
             </div>
-            <p className="text-sm text-muted-foreground mt-1.5">{description}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{description}</p>
           </>
         )}
       </CardContent>

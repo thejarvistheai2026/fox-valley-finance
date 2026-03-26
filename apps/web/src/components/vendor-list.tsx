@@ -167,16 +167,16 @@ export function VendorList({ vendors, onArchive, onUpdate }: VendorListProps) {
 
 function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive?: (vendor: Vendor) => void; onUpdate?: (vendor: Vendor, data: Omit<Vendor, 'id' | 'display_id' | 'project_id' | 'created_at' | 'updated_at'>) => void }) {
   return (
-    <div className="group bg-card border rounded-xl p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200">
-      <div className="flex items-start justify-between gap-4">
+    <div className="group bg-card border rounded-xl p-4 sm:p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         {/* Main content - clickable */}
         <Link to={`/vendors/${vendor.display_id}`} className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Building2 className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-lg truncate">{vendor.name}</h3>
+              <h3 className="font-semibold text-base sm:text-lg truncate">{vendor.name}</h3>
               <div className="flex items-center gap-2">
                 <VendorTypeBadge type={vendor.type} />
                 <span className="text-xs text-muted-foreground font-medium">
@@ -186,7 +186,7 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground">
             {vendor.contact_name && (
               <div className="flex items-center gap-1.5">
                 <span className="font-medium text-foreground">{vendor.contact_name}</span>
@@ -200,18 +200,18 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
             )}
             {vendor.email && (
               <div className="flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5" />
-                <span className="truncate max-w-[200px]">{vendor.email}</span>
+                <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate max-w-[150px] sm:max-w-[200px]">{vendor.email}</span>
               </div>
             )}
             {vendor.website && (
               <div className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" />
+                <Globe className="h-3.5 w-3.5 flex-shrink-0" />
                 <a
                   href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate max-w-[200px] hover:underline"
+                  className="truncate max-w-[150px] sm:max-w-[200px] hover:underline"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {vendor.website.replace(/^https?:\/\//, '')}
@@ -220,16 +220,16 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
             )}
             {vendor.address && (
               <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="truncate max-w-[250px]">{vendor.address}</span>
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate max-w-[200px] sm:max-w-[250px]">{vendor.address}</span>
               </div>
             )}
           </div>
 
           {vendor.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
               {vendor.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs font-medium px-2.5 py-1 rounded-full">
+                <Badge key={tag} variant="secondary" className="text-xs font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
                   {tag}
                 </Badge>
               ))}
@@ -238,20 +238,20 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
         </Link>
 
         {/* Actions - not clickable via the card link */}
-        <div className="text-right space-y-3 flex-shrink-0">
-          <div className="space-y-1 min-w-[140px]">
+        <div className="flex sm:flex-col sm:text-right sm:space-y-3 items-center sm:items-end justify-between sm:justify-start gap-2 sm:flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 mt-2 sm:mt-0">
+          <div className="space-y-0.5 sm:space-y-1 sm:min-w-[140px] text-xs sm:text-sm">
             {vendor.type === 'contract' && (vendor.estimated_total || 0) > 0 && (
               <>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Estimated: </span>
+                <div>
+                  <span className="text-muted-foreground">Est: </span>
                   <span className="font-medium"><Currency amount={vendor.estimated_total || 0} /></span>
                 </div>
-                <div className="text-sm">
+                <div>
                   <span className="text-muted-foreground">Paid: </span>
                   <span className="font-medium text-emerald-600 dark:text-emerald-400"><Currency amount={vendor.paid_total || 0} /></span>
                 </div>
-                <div className="text-sm font-medium">
-                  <span className="text-muted-foreground">Outstanding: </span>
+                <div className="font-medium">
+                  <span className="text-muted-foreground">Out: </span>
                   <span className={cn(
                     "font-semibold",
                     (vendor.outstanding || 0) > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
@@ -262,8 +262,8 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
               </>
             )}
             {vendor.type === 'retail' && (vendor.paid_total || 0) > 0 && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Total Spent: </span>
+              <div>
+                <span className="text-muted-foreground">Spent: </span>
                 <span className="font-semibold"><Currency amount={vendor.paid_total || 0} /></span>
               </div>
             )}
@@ -274,7 +274,7 @@ function VendorCard({ vendor, onArchive, onUpdate }: { vendor: Vendor; onArchive
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-lg hover:bg-muted"
+                className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-muted"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />
