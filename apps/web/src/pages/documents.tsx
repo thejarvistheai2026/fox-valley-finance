@@ -170,6 +170,7 @@ export function DocumentsPage() {
   };
 
   const toggleTag = (tagValue: string) => {
+    console.log('DocumentsPage - Toggling tag:', tagValue);
     setSelectedTags(prev =>
       prev.includes(tagValue)
         ? prev.filter(t => t !== tagValue)
@@ -193,8 +194,17 @@ export function DocumentsPage() {
     const matchesTags = selectedTags.length === 0 ||
       selectedTags.every(tag => doc.tags?.includes(tag));
 
+    console.log('DocumentsPage - Filtering doc:', doc.display_name, 'tags:', doc.tags, 'selectedTags:', selectedTags, 'matchesTags:', matchesTags, 'matchesSearch:', matchesSearch);
+
     return matchesSearch && matchesTags;
   });
+
+  // Debug: Log documents with their tags
+  useEffect(() => {
+    console.log('DocumentsPage - Documents with tags:', documents.map(d => ({ id: d.id, display_name: d.display_name, tags: d.tags })));
+    console.log('DocumentsPage - Selected tags:', selectedTags);
+    console.log('DocumentsPage - Filtered documents count:', filteredDocuments.length);
+  }, [documents, selectedTags, filteredDocuments]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
