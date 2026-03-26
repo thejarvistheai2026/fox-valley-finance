@@ -1109,8 +1109,8 @@ function ContractVendorLayout({
               No estimates yet. Add your first estimate to track costs.
             </p>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full table-fixed">
+            <div className="border rounded-lg overflow-x-auto">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-muted">
                   <tr>
                     <th className="text-left py-2 px-4 font-medium w-10"></th>
@@ -1538,8 +1538,8 @@ function RetailVendorLayout({
             No receipts yet. Add your first receipt to track purchases.
           </p>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full table-fixed">
+          <div className="border rounded-lg overflow-x-auto">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-muted">
                 <tr>
                   <th className="text-left py-2 px-4 font-medium w-20">ID</th>

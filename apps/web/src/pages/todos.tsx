@@ -171,7 +171,7 @@ export function TodosPage() {
   const renderTodoItem = (todo: Todo) => (
     <div
       key={todo.id}
-      className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
+      className={`flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border transition-all ${
         todo.is_completed
           ? 'bg-muted/50 border-muted'
           : 'bg-card border-border hover:border-primary/50'
@@ -180,12 +180,12 @@ export function TodosPage() {
       <Checkbox
         checked={todo.is_completed}
         onCheckedChange={() => handleToggleComplete(todo.id, todo.is_completed)}
-        className="mt-0.5"
+        className="mt-0.5 flex-shrink-0"
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <span
-            className={`font-medium ${
+            className={`font-medium text-sm sm:text-base ${
               todo.is_completed ? 'line-through text-muted-foreground' : ''
             }`}
           >
@@ -194,13 +194,13 @@ export function TodosPage() {
           {todo.is_milestone && (
             <Badge variant="secondary" className="text-xs">
               <Target className="h-3 w-3 mr-1" />
-              Milestone
+              <span className="hidden sm:inline">Milestone</span>
             </Badge>
           )}
         </div>
         {todo.description && (
           <p
-            className={`text-sm mt-1 ${
+            className={`text-xs sm:text-sm mt-1 ${
               todo.is_completed ? 'text-muted-foreground/60' : 'text-muted-foreground'
             }`}
           >
@@ -208,24 +208,24 @@ export function TodosPage() {
           </p>
         )}
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-7 w-7 sm:h-8 sm:w-8"
           onClick={() => handleEdit(todo)}
           title="Edit"
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
+          className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
           onClick={() => handleDelete(todo.id)}
           title="Delete"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       </div>
     </div>
@@ -236,14 +236,15 @@ export function TodosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">To-dos & Milestones</h1>
-          <p className="text-muted-foreground mt-1">
-            Track tasks and upcoming milestones for your project
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">To-dos & Milestones</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Track tasks and upcoming milestones
           </p>
         </div>
-        <Button onClick={handleAdd}>
+        <Button onClick={handleAdd} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
-          Add To-do
+          <span className="sm:hidden">Add</span>
+          <span className="hidden sm:inline">Add To-do</span>
         </Button>
       </div>
 
@@ -296,15 +297,17 @@ export function TodosPage() {
                 <Accordion type="multiple" className="w-full">
                   {byMonth.map(([monthKey, monthTodos]) => (
                     <AccordionItem key={monthKey} value={monthKey}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold">{getMonthLabel(monthKey)}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {monthTodos.length} item{monthTodos.length !== 1 ? 's' : ''}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {monthTodos.filter((t) => t.is_completed).length} completed
-                          </Badge>
+                      <AccordionTrigger className="hover:no-underline px-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-left">
+                          <span className="font-semibold text-sm sm:text-base">{getMonthLabel(monthKey)}</span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {monthTodos.length} item{monthTodos.length !== 1 ? 's' : ''}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {monthTodos.filter((t) => t.is_completed).length} done
+                            </Badge>
+                          </div>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
