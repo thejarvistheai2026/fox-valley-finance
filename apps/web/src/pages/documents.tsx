@@ -327,7 +327,7 @@ export function DocumentsPage() {
                       {doc.file_type.includes('pdf') ? (
                         <FileText className="h-6 w-6 text-red-500" />
                       ) : doc.file_type.includes('image') ? (
-                        <div className="h-6 w-6 bg-blue-500 rounded" />
+                        <Receipt className="h-6 w-6 text-blue-500" />
                       ) : (
                         <Icon className={`h-6 w-6 ${docType.color}`} />
                       )}
