@@ -709,46 +709,87 @@ export function VendorDetailPage() {
 
       {/* Financial Summary Bar */}
       {(() => {
-        // Calculate totals dynamically from estimates and receipts
-        // Include both active and completed estimates in totals (they all represent real costs)
+        // Simple, consistent math:
+        // Total Estimated: Draft + Active estimates (their total value)
+        // Total Paid: Receipts linked to ACTIVE estimates only
+        // Outstanding: Active estimates total minus receipts to active
+        // HST: From completed estimates (hst_amount) + from receipts linked to completed estimates
+
+        const activeEstimates = estimates.filter(e => e.status === 'active');
+        const draftEstimates = estimates.filter(e => e.status === 'draft');
+        const completedEstimates = estimates.filter(e => e.status === 'completed');
+
+        // Card 1: Total Estimated = draft + active
         const totalEstimated = vendor.type === 'contract'
-          ? estimates.filter(e => e.status === 'active' || e.status === 'completed').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
-          : 0;
-        const totalPaid = receipts.reduce((sum, r) => sum + (r.total || 0), 0);
-        // Tax comes from receipts AND from completed estimates' stored hst_amount
-        const receiptsTax = receipts.reduce((sum, r) => sum + (r.tax_total || 0), 0);
-        const completedEstimatesTax = estimates
-          .filter(e => e.status === 'completed')
-          .reduce((sum, e) => sum + (e.hst_amount || 0), 0);
-        const totalTax = receiptsTax + completedEstimatesTax;
-        // Outstanding only applies to active estimates (completed should be paid in full)
-        const activeEstimatesTotal = vendor.type === 'contract'
-          ? estimates.filter(e => e.status === 'active').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
-          : 0;
-        const outstanding = vendor.type === 'contract'
-          ? Math.max(0, activeEstimatesTotal - totalPaid)
+          ? [...draftEstimates, ...activeEstimates].reduce((sum, e) => sum + (e.estimated_total || 0), 0)
           : 0;
 
+        // Card 2: Total - In-Progress = active only
+        const inProgressTotal = vendor.type === 'contract'
+          ? activeEstimates.reduce((sum, e) => sum + (e.estimated_total || 0), 0)
+          : 0;
+
+        // Receipts linked to active estimates
+        const receiptsToActive = receipts.filter(r => {
+          const estimate = estimates.find(e => e.id === r.estimate_id);
+          return estimate?.status === 'active';
+        });
+
+        // Receipts linked to completed estimates
+        const receiptsToCompleted = receipts.filter(r => {
+          const estimate = estimates.find(e => e.id === r.estimate_id);
+          return estimate?.status === 'completed';
+        });
+
+        // Card 3: Total Paid = receipts to active estimates
+        const totalPaid = receiptsToActive.reduce((sum, r) => sum + (r.total || 0), 0);
+
+        // Card 4: Outstanding = In-Progress minus receipts to active
+        const outstanding = vendor.type === 'contract'
+          ? Math.max(0, inProgressTotal - totalPaid)
+          : 0;
+
+        // Card 5: HST from completed estimates
+        const hstFromEstimates = completedEstimates.reduce((sum, e) => sum + (e.hst_amount || 0), 0);
+
+        // Card 6: HST from receipts linked to completed estimates
+        const hstFromReceipts = receiptsToCompleted.reduce((sum, r) => sum + (r.tax_total || 0), 0);
+
+        // Total HST Paid
+        const totalHST = hstFromEstimates + hstFromReceipts;
+
         return (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {vendor.type === 'contract' && (
               <Card>
                 <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Total Estimated</p>
+                  <p className="text-sm text-muted-foreground">Total - All Estimates</p>
                   <p className="text-2xl font-bold">
                     <Currency amount={totalEstimated} />
                   </p>
                 </CardContent>
               </Card>
             )}
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total Paid</p>
-                <p className="text-2xl font-bold">
-                  <Currency amount={totalPaid} />
-                </p>
-              </CardContent>
-            </Card>
+            {vendor.type === 'contract' && (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">Total - In-Progress</p>
+                  <p className="text-2xl font-bold">
+                    <Currency amount={inProgressTotal} />
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            {vendor.type === 'contract' && (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">Total Paid</p>
+                  <p className="text-2xl font-bold">
+                    <Currency amount={totalPaid} />
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             {vendor.type === 'contract' && (
               <Card>
                 <CardContent className="p-4">
@@ -761,9 +802,17 @@ export function VendorDetailPage() {
             )}
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">HST Paid</p>
+                <p className="text-sm text-muted-foreground">Total - Individual Receipts</p>
                 <p className="text-2xl font-bold">
-                  <Currency amount={totalTax} />
+                  <Currency amount={receipts.filter(r => !r.estimate_id).reduce((sum, r) => sum + (r.total || 0), 0)} />
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">Total HST Paid</p>
+                <p className="text-2xl font-bold">
+                  <Currency amount={totalHST} />
                 </p>
               </CardContent>
             </Card>

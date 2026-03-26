@@ -162,7 +162,7 @@ export function DashboardPage() {
       </div>
       
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         <SummaryCard
           title="Total - All Estimates"
           value={summary?.total_estimated || 0}
@@ -171,10 +171,10 @@ export function DashboardPage() {
           loading={loading}
         />
         <SummaryCard
-          title="Total - In-Progress Estimates"
+          title="Total - In-Progress"
           value={summary?.current_total_estimate || 0}
           icon={TrendingUp}
-          description="In Progress only"
+          description="Active estimates"
           loading={loading}
           variant="success"
         />
@@ -182,7 +182,7 @@ export function DashboardPage() {
           title="Total Paid"
           value={summary?.total_paid || 0}
           icon={DollarSign}
-          description={`In ${dateRange.label}`}
+          description="Receipts to active estimates"
           loading={loading}
         />
 
@@ -190,7 +190,7 @@ export function DashboardPage() {
           title="Outstanding"
           value={summary?.total_outstanding || 0}
           icon={TrendingDown}
-          description="Remaining to pay"
+          description="In-Progress minus Paid"
           loading={loading}
           variant="warning"
         />
@@ -199,17 +199,26 @@ export function DashboardPage() {
           title="Total - Individual Receipts"
           value={summary?.total_individual_receipts || 0}
           icon={Store}
-          description="Retail receipts (no estimate)"
+          description="Retail (no estimate)"
           loading={loading}
           variant="info"
         />
 
         <SummaryCard
-          title="Total HST Paid"
-          value={summary?.total_tax || 0}
+          title="Total - HST (Individual)"
+          value={summary?.total_hst_individual_receipts || 0}
           icon={Receipt}
-          description={`In ${dateRange.label}`}
+          description="HST from retail receipts"
           loading={loading}
+        />
+
+        <SummaryCard
+          title="Total - HST (Estimates)"
+          value={summary?.total_hst_estimates || 0}
+          icon={Receipt}
+          description="HST from completed estimates"
+          loading={loading}
+          variant="success"
         />
       </div>
       
