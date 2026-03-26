@@ -1,10 +1,10 @@
 -- Migration: Update dashboard to use stored hst_amount from completed estimates
 -- Description: When an estimate is completed, use its stored hst_amount for HST paid
 
--- First add hst_amount column if not exists (this is idempotent)
+-- First ensure hst_amount column exists (idempotent)
 ALTER TABLE public.estimates ADD COLUMN IF NOT EXISTS hst_amount NUMERIC(12,2) NOT NULL DEFAULT 0;
 
--- Update the dashboard summary function
+-- Update the dashboard summary function to use stored hst_amount
 DROP FUNCTION IF EXISTS public.get_dashboard_summary(DATE, DATE);
 
 CREATE OR REPLACE FUNCTION public.get_dashboard_summary(
@@ -61,7 +61,7 @@ BEGIN
     WHERE (p_start_date IS NULL OR receipts.date >= p_start_date)
       AND (p_end_date IS NULL OR receipts.date <= p_end_date);
 
-    -- Get HST from completed estimates (stored hst_amount)
+    -- Get HST from completed estimates (stored hst_amount field)
     SELECT COALESCE(SUM(hst_amount), 0)
     INTO v_completed_estimates_hst
     FROM estimates

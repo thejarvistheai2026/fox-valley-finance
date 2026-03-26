@@ -40,6 +40,7 @@ export interface Estimate {
   title: string;
   date: string;
   estimated_total: number;
+  hst_amount: number;  // HST/Tax amount for this estimate
   status: EstimateStatus;
   notes?: string;
   tags: string[];

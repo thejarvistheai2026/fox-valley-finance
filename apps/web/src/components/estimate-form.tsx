@@ -69,8 +69,8 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
       title: estimate.title,
       vendor_ref: estimate.vendor_ref || '',
       date: new Date(estimate.date),
-      subtotal: estimate.estimated_total || 0, // Legacy: use total as subtotal
-      hst_amount: 0,
+      subtotal: (estimate.estimated_total || 0) - (estimate.hst_amount || 0),
+      hst_amount: estimate.hst_amount || 0,
       estimated_total: estimate.estimated_total,
       status: estimate.status,
       notes: estimate.notes || '',
@@ -96,12 +96,13 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
   }, [subtotal, hstAmount, form]);
   
   const handleSubmit = (data: EstimateFormData) => {
-    // Only pass valid Estimate fields (exclude form-only fields like subtotal/hst_amount)
+    // Pass all Estimate fields including hst_amount
     const estimateData = {
       title: data.title,
       vendor_ref: data.vendor_ref,
       date: format(data.date, 'yyyy-MM-dd'),
       estimated_total: data.estimated_total,
+      hst_amount: data.hst_amount,
       status: data.status,
       notes: data.notes,
       vendor_id: vendorId,
