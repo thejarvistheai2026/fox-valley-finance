@@ -19,7 +19,7 @@ import {
   X
 } from 'lucide-react';
 
-const DOCUMENT_TAGS = [
+export const DOCUMENT_TAGS = [
   { value: 'estimate', label: 'Estimate', color: 'bg-amber-100 text-amber-700 border-amber-200' },
   { value: 'receipt', label: 'Receipt', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   { value: 'forms', label: 'Forms', color: 'bg-purple-100 text-purple-700 border-purple-200' },

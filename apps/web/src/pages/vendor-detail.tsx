@@ -35,6 +35,7 @@ import { ReceiptFormDialog } from '@/components/receipt-form';
 import { DocumentUploadDialog } from '@/components/document-upload-dialog';
 import { getVendorByDisplayId, getEstimates, getReceipts, getDocuments, getDocumentByReceiptId, createEstimate, updateEstimate, createReceipt, createDocument, uploadDocument, getDocumentViewUrl, getDocumentPublicUrl, downloadDocument, updateVendor, deleteDocument } from '@/lib/supabase';
 import type { Vendor, Estimate, Receipt, Document } from '@/types';
+import { DOCUMENT_TAGS } from '@/pages/documents';
 
 
 export function VendorDetailPage() {
@@ -848,6 +849,22 @@ export function VendorDetailPage() {
                       )}
                       {doc.notes && (
                         <p className="text-xs text-muted-foreground mt-1">{doc.notes}</p>
+                      )}
+                      {doc.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {doc.tags.map((tag) => {
+                            const tagConfig = DOCUMENT_TAGS.find(t => t.value === tag);
+                            if (!tagConfig) return null;
+                            return (
+                              <span
+                                key={tag}
+                                className={`text-[10px] px-2 py-0.5 rounded-full border ${tagConfig.color}`}
+                              >
+                                {tagConfig.label}
+                              </span>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                   </div>
