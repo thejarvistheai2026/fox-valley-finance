@@ -616,7 +616,7 @@ export function VendorDetailPage() {
         
         <CardContent>
           {/* Contact Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
             {vendor.contact_name && (
               <div className="flex items-start gap-2">
                 <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -759,12 +759,12 @@ export function VendorDetailPage() {
         const totalHST = hstFromEstimates + hstFromReceipts;
 
         return (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
             {vendor.type === 'contract' && (
               <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Total - All Estimates</p>
-                  <p className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total - All Estimates</p>
+                  <p className="text-lg sm:text-2xl font-bold">
                     <Currency amount={totalEstimated} />
                   </p>
                 </CardContent>
@@ -772,9 +772,9 @@ export function VendorDetailPage() {
             )}
             {vendor.type === 'contract' && (
               <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Total - In-Progress</p>
-                  <p className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total - In-Progress</p>
+                  <p className="text-lg sm:text-2xl font-bold">
                     <Currency amount={inProgressTotal} />
                   </p>
                 </CardContent>
@@ -782,9 +782,9 @@ export function VendorDetailPage() {
             )}
             {vendor.type === 'contract' && (
               <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Total Paid</p>
-                  <p className="text-2xl font-bold">
+                <CardContent className="p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total Paid</p>
+                  <p className="text-lg sm:text-2xl font-bold">
                     <Currency amount={totalPaid} />
                   </p>
                 </CardContent>
@@ -792,26 +792,26 @@ export function VendorDetailPage() {
             )}
             {vendor.type === 'contract' && (
               <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Outstanding</p>
-                  <p className="text-2xl font-bold text-amber-600">
+                <CardContent className="p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Outstanding</p>
+                  <p className="text-lg sm:text-2xl font-bold text-amber-600">
                     <Currency amount={outstanding} />
                   </p>
                 </CardContent>
               </Card>
             )}
             <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total - Individual Receipts</p>
-                <p className="text-2xl font-bold">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">Total - Individual Receipts</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   <Currency amount={receipts.filter(r => !r.estimate_id).reduce((sum, r) => sum + (r.total || 0), 0)} />
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total HST Paid</p>
-                <p className="text-2xl font-bold">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">Total HST Paid</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   <Currency amount={totalHST} />
                 </p>
               </CardContent>

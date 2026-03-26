@@ -162,7 +162,7 @@ export function DashboardPage() {
       </div>
       
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
         <SummaryCard
           title="Total - All Estimates"
           value={summary?.total_estimated || 0}
@@ -223,13 +223,13 @@ export function DashboardPage() {
       </div>
       
       {/* Two Column Layout: Recent Activity & Documents */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Activity */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-semibold">Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 max-h-[400px] overflow-y-auto">
             <div className="space-y-1">
               {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
@@ -295,12 +295,12 @@ export function DashboardPage() {
         {/* Recent Documents */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Recent Documents</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-semibold">Recent Documents</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/documents')}>
               View All
             </Button>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 max-h-[400px] overflow-y-auto">
             <div className="space-y-1">
               {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
@@ -462,9 +462,9 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
   return (
     <Card className={cn("border shadow-sm hover:shadow-md transition-shadow", variantStyles[variant])}>
       <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className={cn("p-2 sm:p-2.5 rounded-xl flex-shrink-0", iconStyles[variant])}>
-            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className={cn("p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl flex-shrink-0", iconStyles[variant])}>
+            <Icon className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
           </div>
           <span className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</span>
         </div>
@@ -487,10 +487,10 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
           <Skeleton className="h-6 sm:h-8 w-24 sm:w-32" />
         ) : (
           <>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
+            <div className="text-lg sm:text-2xl lg:text-2xl xl:text-3xl font-bold tracking-tight truncate">
               <Currency amount={value} />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{description}</p>
+            <p className="text-[10px] sm:text-sm text-muted-foreground mt-1">{description}</p>
           </>
         )}
       </CardContent>

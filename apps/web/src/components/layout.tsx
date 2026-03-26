@@ -167,10 +167,13 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r bg-card/50 backdrop-blur-sm">
+      {/* Desktop Sidebar - Fixed position */}
+      <aside className="hidden md:flex w-64 flex-col border-r bg-card/50 backdrop-blur-sm fixed h-screen">
         <SidebarContent inboxCount={inboxCount} user={user} onLogout={handleLogout} />
       </aside>
+
+      {/* Spacer for fixed sidebar on desktop */}
+      <div className="hidden md:block w-64 flex-shrink-0" />
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -191,12 +194,12 @@ export function Layout() {
       </Sheet>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="border-b bg-card/50 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between md:justify-end sticky top-0 z-40">
-          <h1 className="md:hidden text-lg font-semibold ml-12">Fox Valley</h1>
+      <main className="flex-1 flex flex-col min-w-0 min-h-screen">
+        <header className="border-b bg-card/50 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between md:justify-end sticky top-0 z-40">
+          <h1 className="md:hidden text-base sm:text-lg font-semibold ml-12 truncate">Fox Valley</h1>
         </header>
 
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+        <div className="flex-1 p-3 sm:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>
