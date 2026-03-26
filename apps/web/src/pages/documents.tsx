@@ -127,7 +127,7 @@ export function DocumentsPage() {
     setIsSavingNotes(true);
     try {
       const updated = await updateDocument(selectedDocumentForNotes.id, {
-        notes: editedNotes || null,
+        notes: editedNotes || undefined,
         tags: editedTags
       });
       // Update the documents list

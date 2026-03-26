@@ -131,6 +131,7 @@ export function TodosPage() {
         );
       } else {
         const newTodo = await createTodo({
+          project_id: '11111111-1111-1111-1111-111111111111',
           title: formData.title,
           description: formData.description || undefined,
           due_date: formData.due_date || undefined,

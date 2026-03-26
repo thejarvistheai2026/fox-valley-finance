@@ -21,7 +21,6 @@ import {
 import { Upload, FileText, X } from 'lucide-react';
 import { createDocument, uploadDocument } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import type { Vendor } from '@/types';
 
 const DOCUMENT_TAGS = [

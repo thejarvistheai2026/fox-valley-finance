@@ -72,7 +72,7 @@ export function VendorsPage() {
         </div>
 
         <VendorFormDialog onSubmit={handleCreateVendor} trigger={
-          <Button size="sm" sm:size="lg" className="gap-2 w-full sm:w-auto">
+          <Button size="sm" className="gap-2 w-full sm:w-auto sm:h-11">
             <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="sm:hidden">Add</span>
             <span className="hidden sm:inline">Add Vendor</span>

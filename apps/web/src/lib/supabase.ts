@@ -539,7 +539,7 @@ export async function updateTodo(id: string, updates: Partial<Todo>) {
 export async function toggleTodoComplete(id: string, isCompleted: boolean) {
   const updates: Partial<Todo> = {
     is_completed: isCompleted,
-    completed_at: isCompleted ? new Date().toISOString() : null,
+    completed_at: isCompleted ? new Date().toISOString() : undefined,
   };
 
   const { data, error } = await supabase

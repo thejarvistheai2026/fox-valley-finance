@@ -174,15 +174,17 @@ export function Layout() {
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger asChild className="md:hidden fixed top-3 left-4 z-50">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
+        <SheetTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden fixed top-3 left-4 z-50 h-10 w-10"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          }
+        />
         <SheetContent side="left" className="w-64 p-0">
           <SidebarContent inboxCount={inboxCount} user={user} onLogout={handleLogout} />
         </SheetContent>
