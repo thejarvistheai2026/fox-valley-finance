@@ -105,6 +105,7 @@ export interface DashboardSummary {
   current_total_estimate: number;  // in progress only
   total_paid: number;
   total_outstanding: number;
+  total_individual_receipts: number; // receipts not linked to estimates
   total_gst: number;
   total_pst: number;
   total_tax: number;

@@ -13,7 +13,8 @@ import {
   Eye,
   FileText,
   ArrowRight,
-  StickyNote
+  StickyNote,
+  Store
 } from 'lucide-react';
 import {
   Dialog,
@@ -161,7 +162,7 @@ export function DashboardPage() {
       </div>
       
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5">
         <SummaryCard
           title="Total - All Estimates"
           value={summary?.total_estimated || 0}
@@ -192,6 +193,15 @@ export function DashboardPage() {
           description="Remaining to pay"
           loading={loading}
           variant="warning"
+        />
+
+        <SummaryCard
+          title="Total - Individual Receipts"
+          value={summary?.total_individual_receipts || 0}
+          icon={Store}
+          description="Retail receipts (no estimate)"
+          loading={loading}
+          variant="info"
         />
 
         <SummaryCard
@@ -420,7 +430,7 @@ interface SummaryCardProps {
   icon: React.ElementType;
   description: string;
   loading: boolean;
-  variant?: 'default' | 'warning' | 'success';
+  variant?: 'default' | 'warning' | 'success' | 'info';
   trend?: string;
   trendUp?: boolean;
 }
@@ -430,12 +440,14 @@ function SummaryCard({ title, value, icon: Icon, description, loading, variant =
     default: 'bg-card border-border/50',
     warning: 'bg-gradient-to-br from-amber-50/80 to-orange-50/50 border-amber-200/50 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-800/50',
     success: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/50 border-emerald-200/50 dark:from-emerald-950/30 dark:to-teal-950/20 dark:border-emerald-800/50',
+    info: 'bg-gradient-to-br from-blue-50/80 to-cyan-50/50 border-blue-200/50 dark:from-blue-950/30 dark:to-cyan-950/20 dark:border-blue-800/50',
   };
 
   const iconStyles = {
     default: 'bg-primary/10 text-primary',
     warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
   };
 
   return (
