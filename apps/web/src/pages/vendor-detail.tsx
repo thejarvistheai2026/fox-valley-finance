@@ -227,6 +227,36 @@ export function VendorDetailPage() {
     }
   };
 
+  // Helper function to check if estimate should be auto-completed
+  const checkAndCompleteEstimate = async (estimateId: string) => {
+    if (!vendor) return;
+
+    try {
+      // Get estimate details
+      const { updateEstimate } = await import('@/lib/supabase');
+      const estimate = estimates.find(e => e.id === estimateId);
+      if (!estimate) return;
+
+      // Get all receipts linked to this estimate
+      const { getReceipts } = await import('@/lib/supabase');
+      const linkedReceipts = await getReceipts({ estimateId });
+
+      // Calculate total paid
+      const totalPaid = linkedReceipts.reduce((sum, r) => sum + r.total, 0);
+
+      // If total paid >= estimate total, mark as completed
+      if (totalPaid >= estimate.estimated_total && estimate.status !== 'completed') {
+        await updateEstimate(estimateId, { status: 'completed' });
+        // Refresh estimates to reflect the change
+        const updatedEstimates = await getEstimates(vendor.id);
+        setEstimates(updatedEstimates);
+        console.log(`Estimate ${estimate.display_id} auto-completed: paid ${totalPaid} >= total ${estimate.estimated_total}`);
+      }
+    } catch (err) {
+      console.error('Failed to check/complete estimate:', err);
+    }
+  };
+
   const handleCreateReceipt = async (
     data: Omit<Receipt, 'id' | 'display_id' | 'project_id' | 'vendor_id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'tax_total'>,
     file?: File | null
@@ -288,6 +318,11 @@ export function VendorDetailPage() {
       // Refresh estimates to update paid/outstanding amounts
       const estimatesData = await getEstimates(vendor.id);
       setEstimates(estimatesData);
+
+      // Check if estimate should be auto-completed
+      if (newReceipt.estimate_id) {
+        await checkAndCompleteEstimate(newReceipt.estimate_id);
+      }
     } catch (err) {
       console.error('Failed to create receipt:', err);
       alert('Failed to create receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -344,6 +379,10 @@ export function VendorDetailPage() {
     if (!vendor || !receiptToDelete) return;
 
     try {
+      // Get the estimate_id before deleting
+      const receipt = receipts.find(r => r.id === receiptToDelete);
+      const estimateId = receipt?.estimate_id;
+
       const { deleteReceipt } = await import('@/lib/supabase');
       await deleteReceipt(receiptToDelete);
       // Refresh receipts
@@ -352,6 +391,24 @@ export function VendorDetailPage() {
       // Close dialog if open
       setReceiptDialogOpen(false);
       setSelectedReceipt(null);
+
+      // Check if estimate should revert from completed (if total now less than estimate)
+      if (estimateId) {
+        const { updateEstimate, getReceipts } = await import('@/lib/supabase');
+        const estimate = estimates.find(e => e.id === estimateId);
+        if (estimate) {
+          const linkedReceipts = await getReceipts({ estimateId });
+          const totalPaid = linkedReceipts.reduce((sum, r) => sum + r.total, 0);
+
+          // If total paid is now less than estimate, revert to active
+          if (totalPaid < estimate.estimated_total && estimate.status === 'completed') {
+            await updateEstimate(estimateId, { status: 'active' });
+            const updatedEstimates = await getEstimates(vendor.id);
+            setEstimates(updatedEstimates);
+            console.log(`Estimate ${estimate.display_id} reverted to active: paid ${totalPaid} < total ${estimate.estimated_total}`);
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to delete receipt:', err);
       alert('Failed to delete receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -370,11 +427,33 @@ export function VendorDetailPage() {
     if (!vendor || !receiptToUnlink) return;
 
     try {
+      // Get the estimate_id before unlinking
+      const receipt = receipts.find(r => r.id === receiptToUnlink);
+      const estimateId = receipt?.estimate_id;
+
       const { unlinkReceiptFromEstimate } = await import('@/lib/supabase');
       await unlinkReceiptFromEstimate(receiptToUnlink);
       // Refresh receipts
       const receiptsData = await getReceipts({ vendorId: vendor.id });
       setReceipts(receiptsData);
+
+      // Check if estimate should revert from completed (if total now less than estimate)
+      if (estimateId) {
+        const { updateEstimate, getReceipts } = await import('@/lib/supabase');
+        const estimate = estimates.find(e => e.id === estimateId);
+        if (estimate) {
+          const linkedReceipts = await getReceipts({ estimateId });
+          const totalPaid = linkedReceipts.reduce((sum, r) => sum + r.total, 0);
+
+          // If total paid is now less than estimate, revert to active
+          if (totalPaid < estimate.estimated_total && estimate.status === 'completed') {
+            await updateEstimate(estimateId, { status: 'active' });
+            const updatedEstimates = await getEstimates(vendor.id);
+            setEstimates(updatedEstimates);
+            console.log(`Estimate ${estimate.display_id} reverted to active: paid ${totalPaid} < total ${estimate.estimated_total}`);
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to unlink receipt:', err);
       alert('Failed to unlink receipt: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -1033,6 +1112,11 @@ export function VendorDetailPage() {
                   // Refresh receipts
                   const receiptsData = await getReceipts({ vendorId: vendor.id });
                   setReceipts(receiptsData);
+                  // Check if estimate should be auto-completed (use estimate_id from data or existing receipt)
+                  const estimateId = data.estimate_id || selectedReceipt.estimate_id;
+                  if (estimateId) {
+                    await checkAndCompleteEstimate(estimateId);
+                  }
                 }}
                 trigger={
                   <Button variant="outline">
