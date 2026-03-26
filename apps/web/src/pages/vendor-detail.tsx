@@ -709,14 +709,23 @@ export function VendorDetailPage() {
       {/* Financial Summary Bar */}
       {(() => {
         // Calculate totals dynamically from estimates and receipts
-        // Only count estimates that are 'active' (In Progress) towards totals
+        // Include both active and completed estimates in totals (they all represent real costs)
         const totalEstimated = vendor.type === 'contract'
-          ? estimates.filter(e => e.status === 'active').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
+          ? estimates.filter(e => e.status === 'active' || e.status === 'completed').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
           : 0;
         const totalPaid = receipts.reduce((sum, r) => sum + (r.total || 0), 0);
-        const totalTax = receipts.reduce((sum, r) => sum + (r.tax_total || 0), 0);
+        // Tax comes from receipts AND from completed estimates' stored hst_amount
+        const receiptsTax = receipts.reduce((sum, r) => sum + (r.tax_total || 0), 0);
+        const completedEstimatesTax = estimates
+          .filter(e => e.status === 'completed')
+          .reduce((sum, e) => sum + (e.hst_amount || 0), 0);
+        const totalTax = receiptsTax + completedEstimatesTax;
+        // Outstanding only applies to active estimates (completed should be paid in full)
+        const activeEstimatesTotal = vendor.type === 'contract'
+          ? estimates.filter(e => e.status === 'active').reduce((sum, e) => sum + (e.estimated_total || 0), 0)
+          : 0;
         const outstanding = vendor.type === 'contract'
-          ? totalEstimated - totalPaid
+          ? Math.max(0, activeEstimatesTotal - totalPaid)
           : 0;
 
         return (
