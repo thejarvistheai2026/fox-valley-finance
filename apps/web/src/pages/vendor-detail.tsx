@@ -1316,6 +1316,14 @@ function ContractVendorLayout({
                                 className="h-6 w-6 p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  console.log('VendorDetail - Setting editing estimate:', {
+                                    id: estimate.id,
+                                    display_id: estimate.display_id,
+                                    title: estimate.title,
+                                    estimated_total: estimate.estimated_total,
+                                    hst_amount: estimate.hst_amount,
+                                    raw: estimate
+                                  });
                                   setEditingEstimate(estimate);
                                 }}
                                 title="Edit estimate"
