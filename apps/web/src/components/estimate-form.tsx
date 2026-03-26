@@ -101,6 +101,14 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
     }
   }, [estimate]);
 
+  // Debug: Log form values after they're set
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      console.log(`Form field ${name} changed:`, value);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
   // Watch subtotal and HST to auto-calculate total
   const subtotal = form.watch('subtotal');
   const hstAmount = form.watch('hst_amount');
@@ -111,6 +119,15 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
   }, [subtotal, hstAmount, form]);
   
   const handleSubmit = (data: EstimateFormData) => {
+    // Debug: Log what we're submitting
+    console.log('EstimateForm - Submitting data:', {
+      ...data,
+      _debug_subtotal: data.subtotal,
+      _debug_hst: data.hst_amount,
+      _debug_total: data.estimated_total,
+      _check_math: `${data.subtotal} + ${data.hst_amount} = ${data.subtotal + data.hst_amount}`
+    });
+
     // Pass all Estimate fields including hst_amount
     const estimateData = {
       title: data.title,
