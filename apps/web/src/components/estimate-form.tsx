@@ -86,6 +86,21 @@ export function EstimateFormDialog({ vendorId, estimate, onSubmit, trigger, open
     },
   });
 
+  // Debug: Log estimate data when editing
+  useEffect(() => {
+    if (estimate) {
+      console.log('EstimateForm - Editing estimate:', {
+        id: estimate.id,
+        display_id: estimate.display_id,
+        title: estimate.title,
+        estimated_total: estimate.estimated_total,
+        hst_amount: estimate.hst_amount,
+        calculated_subtotal: (estimate.estimated_total || 0) - (estimate.hst_amount || 0),
+        raw_estimate: estimate
+      });
+    }
+  }, [estimate]);
+
   // Watch subtotal and HST to auto-calculate total
   const subtotal = form.watch('subtotal');
   const hstAmount = form.watch('hst_amount');
