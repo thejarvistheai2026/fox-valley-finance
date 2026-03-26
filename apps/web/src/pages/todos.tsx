@@ -84,10 +84,12 @@ export function TodosPage() {
   const fetchTodos = async () => {
     setLoading(true);
     try {
+      console.log('TodosPage: Fetching todos...');
       const data = await getTodos();
+      console.log('TodosPage: Fetched todos:', data.length, data);
       setTodos(data);
     } catch (err) {
-      console.error('Failed to fetch todos:', err);
+      console.error('TodosPage: Failed to fetch todos:', err);
     } finally {
       setLoading(false);
     }

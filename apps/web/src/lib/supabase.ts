@@ -501,6 +501,7 @@ export async function getAllTags() {
 
 // Todos API
 export async function getTodos() {
+  console.log('getTodos: Fetching with project_id:', DEFAULT_PROJECT_ID);
   const { data, error } = await supabase
     .from('todos')
     .select('*')
@@ -509,18 +510,27 @@ export async function getTodos() {
     .order('sort_order')
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('getTodos: Error fetching:', error);
+    throw error;
+  }
+  console.log('getTodos: Success, fetched', data?.length || 0, 'todos');
   return data as Todo[];
 }
 
 export async function createTodo(todo: Omit<Todo, 'id' | 'display_id' | 'created_at' | 'updated_at'>) {
+  console.log('createTodo: Creating todo with data:', todo);
   const { data, error } = await supabase
     .from('todos')
     .insert({ ...todo, project_id: DEFAULT_PROJECT_ID })
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('createTodo: Error creating:', error);
+    throw error;
+  }
+  console.log('createTodo: Success, created:', data);
   return data as Todo;
 }
 
