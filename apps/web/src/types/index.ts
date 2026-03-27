@@ -101,13 +101,21 @@ export interface Document {
 }
 
 export interface DashboardSummary {
-  total_estimated: number;              // Card 1: All draft + active estimates
-  current_total_estimate: number;     // Card 2: Active estimates only
-  total_paid: number;                  // Card 3: Receipts linked to active estimates
-  total_outstanding: number;           // Card 4: In-Progress minus Paid
-  total_individual_receipts: number;   // Card 5: Receipts not linked to estimates
-  total_hst_individual_receipts: number; // Card 6: HST from individual receipts
-  total_hst_estimates: number;         // Card 7: HST from completed estimates
+  // Section 1: Budget (drafts - ignores date filter)
+  total_draft_estimates: number;
+
+  // Section 2: Active cash flow
+  total_active_estimates: number;      // In-progress card
+  total_paid_active: number;           // Paid card
+  total_outstanding: number;           // Outstanding card
+
+  // Section 3: Total spend & tax
+  total_completed_estimates: number;   // Completed estimates card
+  total_individual_receipts: number;   // Misc receipts card
+  total_hst_completed: number;         // HST from completed estimates
+  total_hst_individual: number;        // HST from unlinked receipts
+
+  // Extra fields
   total_gst: number;
   total_pst: number;
   total_tax: number;

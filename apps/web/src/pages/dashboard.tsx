@@ -169,65 +169,96 @@ export function DashboardPage() {
         </div>
       </div>
       
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
-        <SummaryCard
-          title="Total - All Estimates"
-          value={summary?.total_estimated || 0}
-          icon={TrendingUp}
-          description="Draft + In Progress"
-          loading={loading}
-        />
-        <SummaryCard
-          title="Total - In-Progress"
-          value={summary?.current_total_estimate || 0}
-          icon={TrendingUp}
-          description="Active estimates"
-          loading={loading}
-          variant="success"
-        />
-        <SummaryCard
-          title="Total Paid"
-          value={summary?.total_paid || 0}
-          icon={DollarSign}
-          description="Receipts to active estimates"
-          loading={loading}
-        />
+      {/* Section 1: Budget */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Budget</h2>
+          <p className="text-sm text-muted-foreground">What might I need to spend?</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+          <SummaryCard
+            title="Draft estimates"
+            value={summary?.total_draft_estimates || 0}
+            icon={TrendingUp}
+            description="Potential commitments not yet locked in"
+            loading={loading}
+            variant="info"
+          />
+        </div>
+      </div>
 
-        <SummaryCard
-          title="Outstanding"
-          value={summary?.total_outstanding || 0}
-          icon={TrendingDown}
-          description="In-Progress minus Paid"
-          loading={loading}
-          variant="warning"
-        />
+      {/* Section 2: Active cash flow */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Active cash flow</h2>
+          <p className="text-sm text-muted-foreground">What's currently in progress with vendors?</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <SummaryCard
+            title="In-progress"
+            value={summary?.total_active_estimates || 0}
+            icon={TrendingUp}
+            description="Active estimates"
+            loading={loading}
+            variant="success"
+          />
+          <SummaryCard
+            title="Paid"
+            value={summary?.total_paid_active || 0}
+            icon={DollarSign}
+            description="Deposits & advancements made"
+            loading={loading}
+          />
+          <SummaryCard
+            title="Outstanding"
+            value={summary?.total_outstanding || 0}
+            icon={TrendingDown}
+            description="Remaining balance owed"
+            loading={loading}
+            variant="warning"
+          />
+        </div>
+      </div>
 
-        <SummaryCard
-          title="Total - Individual Receipts"
-          value={summary?.total_individual_receipts || 0}
-          icon={Store}
-          description="Retail (no estimate)"
-          loading={loading}
-          variant="info"
-        />
-
-        <SummaryCard
-          title="Total - HST (Individual)"
-          value={summary?.total_hst_individual_receipts || 0}
-          icon={Receipt}
-          description="HST from retail receipts"
-          loading={loading}
-        />
-
-        <SummaryCard
-          title="Total - HST (Estimates)"
-          value={summary?.total_hst_estimates || 0}
-          icon={Receipt}
-          description="HST from completed estimates"
-          loading={loading}
-          variant="success"
-        />
+      {/* Section 3: Total spend & tax */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Total spend & tax</h2>
+          <p className="text-sm text-muted-foreground">What have I spent overall?</p>
+        </div>
+        {/* 2x2 grid layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <SummaryCard
+            title="Completed estimates"
+            value={summary?.total_completed_estimates || 0}
+            icon={Receipt}
+            description="Fully paid vendor work"
+            loading={loading}
+            variant="success"
+          />
+          <SummaryCard
+            title="Misc. receipts"
+            value={summary?.total_individual_receipts || 0}
+            icon={Store}
+            description="Not tied to an estimate"
+            loading={loading}
+            variant="info"
+          />
+          <SummaryCard
+            title="HST — estimates"
+            value={summary?.total_hst_completed || 0}
+            icon={Receipt}
+            description="From completed estimates"
+            loading={loading}
+          />
+          <SummaryCard
+            title="HST — misc."
+            value={summary?.total_hst_individual || 0}
+            icon={Receipt}
+            description="From unlinked receipts"
+            loading={loading}
+          />
+        </div>
       </div>
 
       {/* In Progress Estimates Section */}
