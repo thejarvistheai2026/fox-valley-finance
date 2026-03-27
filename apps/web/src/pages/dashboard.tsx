@@ -242,48 +242,48 @@ export function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="space-y-3">
+            <div className="divide-y divide-border/50">
               {activeEstimates.map((estimate) => {
                 const total = estimate.estimated_total || 0;
                 const paid = estimate.paid_to_date || 0;
                 const outstanding = estimate.outstanding || 0;
-                const progress = total > 0 ? Math.round((paid / total) * 100) : 0;
 
                 return (
                   <div
                     key={estimate.id}
-                    className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-pointer"
+                    className="flex items-center gap-3 sm:gap-4 py-3 sm:py-4 first:pt-0 last:pb-0 hover:bg-muted/30 transition-colors group cursor-pointer -mx-2 sm:-mx-4 px-2 sm:px-4"
                     onClick={() => navigate(`/vendors/${estimate.vendor?.display_id}`)}
                   >
-                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50 flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-100 transition-all flex-shrink-0">
+                    {/* Icon */}
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                       <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                     </div>
+
+                    {/* Vendor & Title */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate text-sm sm:text-base">
+                      <div className="font-semibold text-sm sm:text-base truncate">
                         {estimate.vendor?.name}
                       </div>
                       <div className="text-xs sm:text-sm text-muted-foreground truncate">
                         {estimate.title}
                       </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-amber-500 rounded-full transition-all"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground flex-shrink-0">
-                          {progress}%
+                    </div>
+
+                    {/* Payment Info */}
+                    <div className="text-right flex-shrink-0">
+                      <div className="flex items-center gap-2 sm:gap-3 justify-end">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          Paid: <Currency amount={paid} />
+                        </span>
+                        <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+                          of
+                        </span>
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          Total: <Currency amount={total} />
                         </span>
                       </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-semibold text-sm sm:text-base">
-                        <Currency amount={outstanding} />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        <span className="hidden sm:inline"><Currency amount={paid} /> of </span>
-                        <Currency amount={total} />
+                      <div className="text-sm sm:text-base font-semibold text-amber-600 mt-0.5">
+                        <Currency amount={outstanding} /> remaining
                       </div>
                     </div>
                   </div>
