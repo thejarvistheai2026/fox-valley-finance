@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { format, subDays, startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { useState, useRef, useEffect } from 'react';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -8,7 +8,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,36 +24,18 @@ interface DateRangeFilterProps {
 }
 
 const PRESET_RANGES = [
-  { label: 'Last 7 days', days: 7 },
   { label: 'Last 30 days', days: 30 },
   { label: 'Last 3 months', days: 90 },
-  { label: 'Last 6 months', days: 180 },
-  { label: 'Last 730 days', days: 730 },
-  { label: 'This month', getRange: () => {
-    const now = new Date();
-    return {
-      start: format(startOfMonth(now), 'yyyy-MM-dd'),
-      end: format(endOfMonth(now), 'yyyy-MM-dd'),
-    };
-  }},
-  { label: 'Last month', getRange: () => {
-    const lastMonth = subMonths(new Date(), 1);
-    return {
-      start: format(startOfMonth(lastMonth), 'yyyy-MM-dd'),
-      end: format(endOfMonth(lastMonth), 'yyyy-MM-dd'),
-    };
-  }},
   { label: 'All time', days: null },
 ] as const;
 
 export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   const [customRangeOpen, setCustomRangeOpen] = useState(false);
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const customButtonRef = useRef<HTMLDivElement>(null);
 
   const handleRangeChange = (label: string | null) => {
-    if (!label) return;
-
-    if (label === 'Custom range') {
+    if (label === 'custom') {
       setCustomRangeOpen(true);
       return;
     }
@@ -65,16 +46,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
     let start: Date;
     let end: Date;
 
-    if ('getRange' in range) {
-      // Month-based presets
-      const result = range.getRange();
-      onChange({
-        start: result.start,
-        end: result.end,
-        label: range.label,
-      });
-      return;
-    } else if (range.days) {
+    if (range.days) {
       end = endOfDay(new Date());
       start = startOfDay(subDays(new Date(), range.days));
     } else {
@@ -98,6 +70,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
         label: 'Custom range',
       });
       setCustomRangeOpen(false);
+      setDateRange({}); // Reset for next time
     }
   };
 
@@ -106,74 +79,96 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
     ? `${format(new Date(value.start), 'MMM d')} - ${format(new Date(value.end), 'MMM d')}`
     : value.label;
 
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (customButtonRef.current && !customButtonRef.current.contains(event.target as Node)) {
+        setCustomRangeOpen(false);
+      }
+    };
+    if (customRangeOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [customRangeOpen]);
+
   return (
-    <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
+    <div className="relative" ref={customButtonRef}>
       <Select
-        value={isCustomRange ? undefined : value.label}
+        value={isCustomRange ? 'custom' : value.label}
         onValueChange={handleRangeChange}
       >
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder={displayLabel}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select date range">
             {displayLabel}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent side="bottom" align="start">
+        {/* Force dropdown to open downward */}
+        <SelectContent
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          className="dashboard-date-range"
+        >
           {PRESET_RANGES.map((range) => (
             <SelectItem key={range.label} value={range.label}>
               {range.label}
             </SelectItem>
           ))}
-          <div
-            className={cn(
-              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground",
-              isCustomRange && "bg-accent text-accent-foreground"
-            )}
-            onClick={() => setCustomRangeOpen(true)}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            Custom range...
-          </div>
+          {/* Custom range as a SelectItem so it works properly */}
+          <SelectItem value="custom" className={cn(isCustomRange && "bg-accent")}>
+            <div className="flex items-center">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              Custom range...
+            </div>
+          </SelectItem>
         </SelectContent>
       </Select>
 
-      <PopoverContent className="w-auto p-4" align="end">
-        <div className="space-y-4">
-          <div className="text-sm font-medium">Select date range</div>
-          <Calendar
-            mode="range"
-            selected={{
-              from: dateRange.from,
-              to: dateRange.to,
-            }}
-            onSelect={(range) => {
-              setDateRange({
-                from: range?.from,
-                to: range?.to,
-              });
-            }}
-            numberOfMonths={2}
-          />
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-xs text-muted-foreground">
-              {dateRange.from && dateRange.to ? (
-                <>
-                  {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}
-                </>
-              ) : (
-                'Select start and end dates'
-              )}
+      {/* Custom Range Popover - separate from Select */}
+      {customRangeOpen && (
+        <div
+          className="absolute z-50 mt-2 w-auto p-4 rounded-lg bg-popover shadow-md border border-border"
+          style={{ top: '100%', right: 0 }}
+        >
+          <div className="space-y-4">
+            <div className="text-sm font-medium">Select date range</div>
+            <Calendar
+              mode="range"
+              selected={{
+                from: dateRange.from,
+                to: dateRange.to,
+              }}
+              onSelect={(range) => {
+                setDateRange({
+                  from: range?.from,
+                  to: range?.to,
+                });
+              }}
+              numberOfMonths={2}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-xs text-muted-foreground">
+                {dateRange.from && dateRange.to ? (
+                  <>
+                    {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}
+                  </>
+                ) : (
+                  'Select start and end dates'
+                )}
+              </div>
+              <Button
+                size="sm"
+                onClick={applyCustomRange}
+                disabled={!dateRange.from || !dateRange.to}
+              >
+                Apply
+              </Button>
             </div>
-            <Button
-              size="sm"
-              onClick={applyCustomRange}
-              disabled={!dateRange.from || !dateRange.to}
-            >
-              Apply
-            </Button>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }
 
@@ -184,14 +179,7 @@ export function useDateRange(defaultRange: string = 'All time'): {
   const defaultPreset = PRESET_RANGES.find(r => r.label === defaultRange) || PRESET_RANGES[PRESET_RANGES.length - 1];
 
   const getInitialValue = (): DateRangeValue => {
-    if ('getRange' in defaultPreset) {
-      const result = defaultPreset.getRange();
-      return {
-        start: result.start,
-        end: result.end,
-        label: defaultPreset.label,
-      };
-    } else if (defaultPreset.days) {
+    if (defaultPreset.days) {
       return {
         start: format(startOfDay(subDays(new Date(), defaultPreset.days)), 'yyyy-MM-dd'),
         end: format(endOfDay(new Date()), 'yyyy-MM-dd'),
