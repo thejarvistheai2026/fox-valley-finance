@@ -62,11 +62,20 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
     });
   };
 
+  // Helper to format date as YYYY-MM-DD without timezone issues
+  const formatDateToString = (date: Date): string => {
+    // Use local date components to avoid timezone shift
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const applyCustomRange = () => {
     if (dateRange.from && dateRange.to) {
       onChange({
-        start: format(startOfDay(dateRange.from), 'yyyy-MM-dd'),
-        end: format(endOfDay(dateRange.to), 'yyyy-MM-dd'),
+        start: formatDateToString(dateRange.from),
+        end: formatDateToString(dateRange.to),
         label: 'Custom range',
       });
       setCustomRangeOpen(false);
@@ -76,7 +85,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
 
   const isCustomRange = value.label === 'Custom range';
   const displayLabel = isCustomRange
-    ? `${format(new Date(value.start), 'MMM d')} - ${format(new Date(value.end), 'MMM d')}`
+    ? `${format(new Date(value.start + 'T12:00:00'), 'MMM d')} - ${format(new Date(value.end + 'T12:00:00'), 'MMM d')}`
     : value.label;
 
   // Close popover when clicking outside
@@ -151,7 +160,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
               <div className="text-xs text-muted-foreground">
                 {dateRange.from && dateRange.to ? (
                   <>
-                    {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}
+                    {formatDateToString(dateRange.from)} - {formatDateToString(dateRange.to)}
                   </>
                 ) : (
                   'Select start and end dates'
