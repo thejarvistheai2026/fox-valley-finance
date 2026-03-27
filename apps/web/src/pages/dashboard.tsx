@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Currency } from '@/components/currency';
 import { DateRangeFilter, useDateRange } from '@/components/date-range-filter';
-import type { DashboardSummary, Receipt as ReceiptType, Document } from '@/types';
+import type { DashboardSummary, Receipt as ReceiptType, Document, Estimate } from '@/types';
 import {
   getDashboardSummary,
   getReceipts,
@@ -34,7 +34,8 @@ import {
   getDocumentViewUrl,
   getDocumentPublicUrl,
   downloadDocument,
-  deleteDocument
+  deleteDocument,
+  getEstimates
 } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +45,7 @@ export function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentReceipts, setRecentReceipts] = useState<ReceiptType[]>([]);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
+  const [activeEstimates, setActiveEstimates] = useState<Estimate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -74,10 +76,16 @@ export function DashboardPage() {
         const documentsData = await getAllDocuments({ limit: 5 });
         console.log('Documents:', documentsData);
 
+        // Fetch active estimates (in-progress work)
+        const estimatesData = await getEstimates();
+        const active = (estimatesData || []).filter(e => e.status === 'active').slice(0, 5);
+        console.log('Active estimates:', active);
+
         // RPC returns an array, get the first item
         setSummary(Array.isArray(summaryData) ? summaryData[0] : summaryData);
         setRecentReceipts((receiptsData || []).slice(0, 10));
         setRecentDocuments(documentsData || []);
+        setActiveEstimates(active);
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
@@ -221,7 +229,71 @@ export function DashboardPage() {
           variant="success"
         />
       </div>
-      
+
+      {/* In Progress Estimates Section */}
+      {activeEstimates.length > 0 && (
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base sm:text-lg font-semibold flex items-center justify-between">
+              <span>In Progress Estimates</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {activeEstimates.length} active
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {activeEstimates.map((estimate) => {
+                const total = estimate.estimated_total || 0;
+                const paid = estimate.paid_to_date || 0;
+                const outstanding = estimate.outstanding || 0;
+                const progress = total > 0 ? Math.round((paid / total) * 100) : 0;
+
+                return (
+                  <div
+                    key={estimate.id}
+                    className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-pointer"
+                    onClick={() => navigate(`/vendors/${estimate.vendor?.display_id}`)}
+                  >
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50 flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-100 transition-all flex-shrink-0">
+                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate text-sm sm:text-base">
+                        {estimate.vendor?.name}
+                      </div>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                        {estimate.title}
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-500 rounded-full transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground flex-shrink-0">
+                          {progress}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-semibold text-sm sm:text-base">
+                        <Currency amount={outstanding} />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <span className="hidden sm:inline"><Currency amount={paid} /> of </span>
+                        <Currency amount={total} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Two Column Layout: Recent Activity & Documents */}
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Activity */}
