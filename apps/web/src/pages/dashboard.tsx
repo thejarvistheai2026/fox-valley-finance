@@ -173,7 +173,7 @@ export function DashboardPage() {
       <div className="space-y-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Budget</h2>
-          <p className="text-sm text-muted-foreground">What might I need to spend?</p>
+          <p className="text-sm text-muted-foreground">Based on Estimates from Vendors currently in system</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           <SummaryCard
