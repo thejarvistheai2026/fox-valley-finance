@@ -89,7 +89,7 @@ export async function archiveVendor(id: string) {
 export async function getEstimates(vendorId?: string) {
   let query = supabase
     .from('estimate_with_balance')
-    .select('*, linked_receipts:receipts(*)')
+    .select('*, linked_receipts:receipts(*), vendor:vendors(*)')
     .order('date', { ascending: false });
 
   if (vendorId) {
