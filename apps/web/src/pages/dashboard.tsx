@@ -237,19 +237,19 @@ export function DashboardPage() {
             variant="success"
           />
           <SummaryCard
+            title="HST — estimates"
+            value={summary?.total_hst_completed || 0}
+            icon={Receipt}
+            description="From completed estimates"
+            loading={loading}
+          />
+          <SummaryCard
             title="Misc. receipts"
             value={summary?.total_individual_receipts || 0}
             icon={Store}
             description="Not tied to an estimate"
             loading={loading}
             variant="info"
-          />
-          <SummaryCard
-            title="HST — estimates"
-            value={summary?.total_hst_completed || 0}
-            icon={Receipt}
-            description="From completed estimates"
-            loading={loading}
           />
           <SummaryCard
             title="HST — misc."
@@ -547,9 +547,9 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, icon: Icon, description, loading, variant = 'default', trend, trendUp }: SummaryCardProps) {
   const variantStyles = {
     default: 'bg-card border-border/50',
-    warning: 'bg-gradient-to-br from-amber-50/80 to-orange-50/50 border-amber-200/50 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-800/50',
-    success: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/50 border-emerald-200/50 dark:from-emerald-950/30 dark:to-teal-950/20 dark:border-emerald-800/50',
-    info: 'bg-gradient-to-br from-blue-50/80 to-cyan-50/50 border-blue-200/50 dark:from-blue-950/30 dark:to-cyan-950/20 dark:border-blue-800/50',
+    warning: 'bg-card border-border/50',
+    success: 'bg-card border-border/50',
+    info: 'bg-card border-border/50',
   };
 
   const iconStyles = {
