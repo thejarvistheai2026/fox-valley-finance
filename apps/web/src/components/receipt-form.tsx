@@ -116,11 +116,25 @@ export function ReceiptFormDialog({
   const subtotal = useWatch({ control: form.control, name: 'subtotal' });
   const gstAmount = useWatch({ control: form.control, name: 'gst_amount' });
   const pstAmount = useWatch({ control: form.control, name: 'pst_amount' });
+  const total = useWatch({ control: form.control, name: 'total' });
 
   useEffect(() => {
-    const total = (subtotal || 0) + (gstAmount || 0) + (pstAmount || 0);
-    form.setValue('total', total);
+    const newTotal = (subtotal || 0) + (gstAmount || 0) + (pstAmount || 0);
+    form.setValue('total', newTotal);
   }, [subtotal, gstAmount, pstAmount, form]);
+
+  // Single HST field for Ontario (combines gst + pst)
+  const hstAmount = taxProvince === 'ON' ? (gstAmount || 0) + (pstAmount || 0) : null;
+
+  const handleHSTChange = (value: number) => {
+    if (taxProvince === 'ON') {
+      // Split HST into 5% federal + 8% provincial
+      const federal = Math.round(value * 0.05 / 0.13 * 100) / 100;
+      const provincial = Math.round((value - federal) * 100) / 100;
+      form.setValue('gst_amount', federal);
+      form.setValue('pst_amount', provincial);
+    }
+  };
   
   const handleSubmit = (data: ReceiptFormData) => {
     console.log('Receipt form submitting:', data);
@@ -232,7 +246,7 @@ export function ReceiptFormDialog({
           {/* Section: Financial */}
           <div className="space-y-4 pt-4 border-t">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Financial Details</h3>
-            <div className="grid grid-cols-4 gap-5">
+            <div className={cn("grid gap-5", taxProvince === 'ON' ? "grid-cols-3" : "grid-cols-4")}>
             <div className="space-y-2">
               <Label htmlFor="subtotal">Subtotal (CAD) *</Label>
               <Input
@@ -245,29 +259,48 @@ export function ReceiptFormDialog({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="gst_amount">{taxLabels[taxProvince].gst}</Label>
-              <Input
-                id="gst_amount"
-                type="number"
-                step="0.01"
-                {...form.register('gst_amount', { valueAsNumber: true })}
-                placeholder="0.00"
-                className="h-11"
-              />
-            </div>
+            {taxProvince === 'ON' ? (
+              // Ontario: Single HST field
+              <div className="space-y-2">
+                <Label htmlFor="hst_amount">HST (13%)</Label>
+                <Input
+                  id="hst_amount"
+                  type="number"
+                  step="0.01"
+                  value={hstAmount || ''}
+                  onChange={(e) => handleHSTChange(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                  className="h-11"
+                />
+              </div>
+            ) : (
+              // Quebec: Separate GST and QST fields
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="gst_amount">{taxLabels[taxProvince].gst}</Label>
+                  <Input
+                    id="gst_amount"
+                    type="number"
+                    step="0.01"
+                    {...form.register('gst_amount', { valueAsNumber: true })}
+                    placeholder="0.00"
+                    className="h-11"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="pst_amount">{taxLabels[taxProvince].pst}</Label>
-              <Input
-                id="pst_amount"
-                type="number"
-                step="0.01"
-                {...form.register('pst_amount', { valueAsNumber: true })}
-                placeholder="0.00"
-                className="h-11"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pst_amount">{taxLabels[taxProvince].pst}</Label>
+                  <Input
+                    id="pst_amount"
+                    type="number"
+                    step="0.01"
+                    {...form.register('pst_amount', { valueAsNumber: true })}
+                    placeholder="0.00"
+                    className="h-11"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="total">Total (CAD)</Label>
@@ -275,7 +308,7 @@ export function ReceiptFormDialog({
                 id="total"
                 type="number"
                 step="0.01"
-                {...form.register('total', { valueAsNumber: true })}
+                value={total || 0}
                 readOnly
                 className="bg-muted h-11 font-semibold"
               />
