@@ -290,13 +290,10 @@ export function DashboardPage() {
                       <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                     </div>
 
-                    {/* Vendor & Title */}
+                    {/* Vendor Name */}
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm sm:text-base truncate">
                         {estimate.vendor?.name}
-                      </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
-                        {estimate.title}
                       </div>
                     </div>
 
