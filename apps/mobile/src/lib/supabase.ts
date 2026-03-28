@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 import { Vendor, Receipt, Estimate, OCResult } from '~/types';
 
 // NOTE: Replace with your actual Supabase credentials
@@ -17,12 +18,37 @@ export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON
   },
 });
 
+// Get the proper redirect URL for OAuth
+// Uses Linking.createURL which automatically handles:
+// - Expo Go: exp://192.168.x.x:8081/--/auth/callback
+// - Standalone: foxvalley://auth/callback (based on scheme in app.json)
+export const getRedirectUrl = (): string => {
+  return Linking.createURL('auth/callback');
+};
+
 // Auth helpers
 export const signInWithEmail = async (email: string) => {
+  const redirectUrl = getRedirectUrl();
+  console.log('Magic link redirect URL:', redirectUrl);
+
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: undefined, // Magic link only, no redirect
+      emailRedirectTo: redirectUrl,
+    },
+  });
+  return { data, error };
+};
+
+export const signInWithGoogle = async () => {
+  const redirectUrl = getRedirectUrl();
+  console.log('Google OAuth redirect URL:', redirectUrl);
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: redirectUrl,
+      skipBrowserRedirect: true, // Important: Return URL instead of redirecting
     },
   });
   return { data, error };
@@ -66,7 +92,7 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
     .select('*')
     .eq('id', id)
     .single();
-  
+
   if (error) throw error;
   return data;
 };
@@ -77,7 +103,7 @@ export const createVendor = async (name: string, type: 'contract' | 'retail'): P
     .insert({ name, type })
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 };
@@ -92,7 +118,7 @@ export const getReceiptById = async (id: string): Promise<Receipt | null> => {
     `)
     .eq('id', id)
     .single();
-  
+
   if (error) throw error;
   return data;
 };
@@ -103,7 +129,7 @@ export const createReceipt = async (receiptData: Partial<Receipt>): Promise<Rece
     .insert(receiptData)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 };
@@ -117,7 +143,7 @@ export const getInboxReceipts = async (): Promise<Receipt[]> => {
     `)
     .eq('status', 'inbox')
     .order('created_at', { ascending: false });
-  
+
   if (error) throw error;
   return data || [];
 };
@@ -130,17 +156,17 @@ export const getEstimatesByVendor = async (vendorId: string): Promise<Estimate[]
     .eq('vendor_id', vendorId)
     .eq('status', 'active')
     .order('date', { ascending: false });
-  
+
   if (error) throw error;
   return data || [];
 };
 
 // OCR Edge Function
 export const callOCFunction = async (imageBase64: string): Promise<OCResult> => {
-  const { data, error } = await supabase.functions.invoke('process-receipt', {
+  const { data, error } = await supabase.functions.invoke('ocr-extract', {
     body: { image: imageBase64 },
   });
-  
+
   if (error) {
     console.error('OC function error:', error);
     // Return fallback result on failure
@@ -156,7 +182,7 @@ export const callOCFunction = async (imageBase64: string): Promise<OCResult> => 
       vendor_ref: null,
     };
   }
-  
+
   return data;
 };
 
@@ -196,7 +222,7 @@ export const uploadReceiptImage = async (
 ): Promise<string> => {
   // Convert base64 to Uint8Array for React Native
   const bytes = base64ToUint8Array(base64Data);
-  
+
   const { data, error } = await supabase
     .storage
     .from('receipts')
@@ -204,7 +230,7 @@ export const uploadReceiptImage = async (
       contentType,
       upsert: false,
     });
-  
+
   if (error) throw error;
   return data.path;
 };
@@ -212,4 +238,87 @@ export const uploadReceiptImage = async (
 export const getPublicUrl = (path: string): string => {
   const { data } = supabase.storage.from('receipts').getPublicUrl(path);
   return data.publicUrl;
+};
+
+// Alias for OCR function
+export const getOCRResults = callOCFunction;
+
+// Get receipts with filters
+export const getReceipts = async (options?: {
+  dateRange?: { start: string; end: string };
+}): Promise<Receipt[]> => {
+  let query = supabase
+    .from('receipts')
+    .select(`
+      *,
+      vendors:vendor_id (*)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (options?.dateRange) {
+    query = query
+      .gte('date', options.dateRange.start)
+      .lte('date', options.dateRange.end);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
+// Upload document and create document record
+export const uploadDocument = async (
+  imageUri: string,
+  fileName: string,
+  fileType: string,
+  projectId: string,
+  vendorId?: string | null
+): Promise<{ id: string; storage_path: string }> => {
+  // Convert image to base64
+  const response = await fetch(imageUri);
+  const blob = await response.blob();
+
+  // Read file as base64
+  const reader = new FileReader();
+  const base64Promise = new Promise<string>((resolve) => {
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      const base64Data = base64.split(',')[1];
+      resolve(base64Data);
+    };
+    reader.readAsDataURL(blob);
+  });
+  const base64Data = await base64Promise;
+
+  // Upload to storage
+  const storagePath = `${projectId}/documents/${Date.now()}_${fileName}`;
+  const bytes = base64ToUint8Array(base64Data);
+
+  const { error: uploadError } = await supabase
+    .storage
+    .from('documents')
+    .upload(storagePath, bytes, {
+      contentType: fileType,
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  // Create document record
+  const { data, error: docError } = await supabase
+    .from('documents')
+    .insert({
+      project_id: projectId,
+      vendor_id: vendorId,
+      display_name: fileName,
+      original_file_name: fileName,
+      storage_path: storagePath,
+      file_type: fileType,
+      file_size_bytes: bytes.length,
+    })
+    .select('id, storage_path')
+    .single();
+
+  if (docError) throw docError;
+  return data;
 };

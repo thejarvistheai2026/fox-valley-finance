@@ -16,9 +16,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Claude API configuration
-const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const CLAUDE_MODEL = "claude-3-sonnet-20240229"; // Using Sonnet for good accuracy/cost balance
+// OpenAI API configuration
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_MODEL = "gpt-4o"; // Using GPT-4o for vision tasks
 
 // Maximum retry attempts
 const MAX_RETRIES = 2;
@@ -51,9 +51,9 @@ serve(async (req) => {
 
   try {
     // Get API key from environment
-    const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      throw new Error("ANTHROPIC_API_KEY not configured");
+      throw new Error("OPENAI_API_KEY not configured");
     }
 
     // Parse request body
@@ -163,27 +163,26 @@ async function fetchFromStorage(storagePath: string): Promise<{
 }
 
 /**
- * Call Claude API to extract receipt data with retry logic
+ * Call OpenAI API to extract receipt data with retry logic
  */
 async function extractReceiptData(
-  base64Image: string, 
-  mimeType: string, 
+  base64Image: string,
+  mimeType: string,
   apiKey: string,
   attempt: number = 0
 ): Promise<{ result: ExtractionResult }> {
   try {
-    // Build the Claude API request
+    // Build the OpenAI API request
     const prompt = buildExtractionPrompt();
 
-    const response = await fetch(CLAUDE_API_URL, {
+    const response = await fetch(OPENAI_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: CLAUDE_MODEL,
+        model: OPENAI_MODEL,
         max_tokens: 1000,
         messages: [
           {
@@ -194,42 +193,41 @@ async function extractReceiptData(
                 text: prompt,
               },
               {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
-                  data: base64Image,
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType};base64,${base64Image}`,
                 },
               },
             ],
           },
         ],
+        response_format: { type: "json_object" },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse the JSON response from Claude
+    // Parse the JSON response from OpenAI
     const result = parseClaudeResponse(content);
-    
+
     return { result };
 
   } catch (error) {
     console.error(`Attempt ${attempt + 1} failed:`, error);
-    
+
     // Retry logic
     if (attempt < MAX_RETRIES) {
       console.log(`Retrying in ${RETRY_DELAY_MS}ms...`);
       await sleep(RETRY_DELAY_MS);
       return extractReceiptData(base64Image, mimeType, apiKey, attempt + 1);
     }
-    
+
     // All retries exhausted - return failed result
     return { result: getEmptyResult("failed") };
   }
