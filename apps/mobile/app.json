@@ -16,7 +16,8 @@
       "bundleIdentifier": "com.foxvalley.finance",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture receipt images for expense tracking.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photos to select receipt images."
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photos to select receipt images and browse recent captures.",
+        "NSPhotoLibraryAddUsageDescription": "This app saves receipt photos to your photo library."
       }
     },
     "android": {
@@ -34,6 +35,8 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "foxvalley",
+    "deepLinking": true,
     "plugins": [
       [
         "expo-camera",
@@ -46,7 +49,15 @@
         {
           "photosPermission": "Allow Fox Valley Finance to access your photos to select receipts."
         }
-      ]
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Fox Valley Finance to access your photos to browse recent receipts.",
+          "savePhotosPermission": "Allow Fox Valley Finance to save receipt photos to your library."
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

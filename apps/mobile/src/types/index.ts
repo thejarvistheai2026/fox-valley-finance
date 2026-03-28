@@ -86,28 +86,12 @@ export interface User {
 }
 
 export type RootStackParamList = {
-  Main: undefined;
-  // Capture Flow
-  SelectVendor: undefined;
-  Camera: {
-    vendorId?: string;
-  };
-  Review: {
-    imageUri: string;
-    vendorId?: string;
-  };
-  ReceiptDetail: {
-    receiptId: string;
-  };
-  VendorDetail: {
-    vendorId: string;
-  };
-  // Legacy capture route (for backwards compatibility)
-  Capture: undefined;
-};
-
-export type MainTabParamList = {
+  // Main landing
   Home: undefined;
-  Search: undefined;
-  Inbox: undefined;
+  // Camera flow
+  Camera: undefined;
+  Preview: {
+    imageUri: string;
+  };
+  Gallery: undefined;
 };

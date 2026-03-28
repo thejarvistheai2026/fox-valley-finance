@@ -1,112 +1,154 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { Mail, ArrowRight, CheckCircle } from 'lucide-react-native';
-import { signInWithEmail } from '~/lib/supabase';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Chrome } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { signInWithGoogle, supabase } from '~/lib/supabase';
 
 export default function AuthScreen() {
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
 
-  const handleSendMagicLink = async () => {
-    if (!email.trim() || !email.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
+  useEffect(() => {
+    const handleUrl = async (url: string) => {
+      console.log('Received URL:', url);
 
+      // Check for tokens in URL
+      // OAuth can return tokens in either query params (?access_token=) or hash (#access_token=)
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+
+      // Try hash fragment first (after #)
+      const hashIndex = url.indexOf('#');
+      if (hashIndex !== -1) {
+        const hashParams = new URLSearchParams(url.substring(hashIndex + 1));
+        accessToken = hashParams.get('access_token');
+        refreshToken = hashParams.get('refresh_token');
+      }
+
+      // If not in hash, try query params (after ?)
+      if (!accessToken) {
+        const queryIndex = url.indexOf('?');
+        if (queryIndex !== -1) {
+          const queryParams = new URLSearchParams(url.substring(queryIndex + 1));
+          accessToken = queryParams.get('access_token');
+          refreshToken = queryParams.get('refresh_token');
+        }
+      }
+
+      if (accessToken) {
+        console.log('Found access token, setting session...');
+        setLoading(true);
+        
+        // Close the browser
+        try {
+          await WebBrowser.dismissBrowser();
+        } catch (e) {
+          // Browser might already be closed
+        }
+
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        });
+
+        if (error) {
+          console.error('Session error:', error);
+          Alert.alert('Sign in failed', error.message);
+        } else {
+          console.log('Session set successfully');
+        }
+        setLoading(false);
+      } else if (url.includes('error=')) {
+        try { await WebBrowser.dismissBrowser(); } catch (e) {}
+        const queryIndex = url.indexOf('?');
+        const params = new URLSearchParams(queryIndex !== -1 ? url.substring(queryIndex + 1) : '');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+        console.error('OAuth error:', error, errorDescription);
+        Alert.alert('Sign in failed', errorDescription || error || 'Unknown error');
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleUrl(url);
+    });
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const handleGoogleSignIn = async () => {
     setLoading(true);
-    const { error } = await signInWithEmail(email.trim());
-    setLoading(false);
+    try {
+      const { data, error } = await signInWithGoogle();
 
-    if (error) {
-      Alert.alert('Error', error.message);
-      return;
+      if (error) {
+        Alert.alert('Error', error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        console.log('Opening OAuth URL:', data.url);
+        // Use openAuthSessionAsync which is designed for OAuth flows
+        // It will automatically close when redirected to our scheme
+        await WebBrowser.openAuthSessionAsync(data.url, Linking.createURL('auth/callback'));
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in with Google');
+    } finally {
+      setLoading(false);
     }
-
-    setEmailSent(true);
   };
 
-  if (emailSent) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white px-6">
-        <View className="items-center">
-          <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-4">
-            <CheckCircle size={32} color="#10b981" />
-          </View>
-          <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">
-            Check your email
-          </Text>
-          <Text className="text-gray-600 text-center mb-6">
-            We've sent a magic link to{'\n'}
-            <Text className="font-semibold text-gray-900">{email}</Text>
-          </Text>
-          <TouchableOpacity
-            onPress={() => setEmailSent(false)}
-            className="bg-gray-100 px-6 py-3 rounded-lg"
-          >
-            <Text className="text-gray-700 font-medium">Use a different email</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
-    >
-      <View className="flex-1 bg-white px-6 pt-20">
-        <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            Fox Valley Finance
-          </Text>
-          <Text className="text-gray-600">
-            Track receipts and expenses for your home build
-          </Text>
-        </View>
+    <View className="flex-1 bg-white px-6 pt-20 justify-center">
+      <View className="items-center mb-12">
+        <Text className="text-3xl font-bold text-gray-900 mb-2 text-center">
+          Fox Valley Finance
+        </Text>
+        <Text className="text-gray-600 text-center">
+          Capture receipts for your home build
+        </Text>
+      </View>
 
-        <View className="mb-6">
-          <Text className="text-sm font-medium text-gray-700 mb-2">
-            Email Address
-          </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
-            <Mail size={20} color="#6b7280" />
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              className="flex-1 ml-3 text-base text-gray-900"
-              editable={!loading}
-            />
-          </View>
-        </View>
-
+      <View className="space-y-4">
         <TouchableOpacity
-          onPress={handleSendMagicLink}
-          disabled={loading || !email}
-          className={`py-4 rounded-lg flex-row items-center justify-center ${
-            loading || !email ? 'bg-gray-300' : 'bg-primary-600'
-          }`}
+          onPress={handleGoogleSignIn}
+          disabled={loading}
+          className="py-4 rounded-lg flex-row items-center justify-center bg-white border border-gray-300 shadow-sm"
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color="#374151" />
           ) : (
             <>
-              <Text className="text-white font-semibold text-lg mr-2">Send Magic Link</Text>
-              <ArrowRight size={20} color="white" />
+              <Chrome size={24} color="#4285F4" />
+              <Text className="text-gray-700 font-semibold text-lg ml-3">
+                Sign in with Google
+              </Text>
             </>
           )}
         </TouchableOpacity>
 
-        <View className="mt-8">
+        <View className="py-4">
           <Text className="text-sm text-gray-500 text-center">
-            We'll send you a magic link to sign in. No password required.
+            Tap to sign in with your Google account
           </Text>
         </View>
       </View>
-    </KeyboardAvoidingView>
+
+      <View className="mt-8">
+        <Text className="text-xs text-gray-400 text-center">
+          Open the app, take a photo, done.{'\n'}
+          Process receipts on the web app.
+        </Text>
+      </View>
+    </View>
   );
 }
